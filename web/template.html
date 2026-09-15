@@ -42,6 +42,8 @@ code,pre,.mono{font-family:var(--mono)}
 /* ---------- 通用件 ---------- */
 .badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
 .badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+a.badge{text-decoration:none;cursor:pointer}
+a.badge:hover{border-color:var(--border-2);background:var(--surface-3)}
 .b-ok{background:var(--ok-soft);color:var(--ok)}
 .b-warn{background:var(--warn-soft);color:var(--warn)}
 .b-danger{background:var(--danger-soft);color:var(--danger)}
@@ -234,6 +236,7 @@ table.tbl td.q{max-width:420px}
     <div class="badges">
       <span class="badge b-neutral" id="engineBadge"><span class="dot"></span>引擎检测中</span>
       <span class="badge b-info" id="gateBadge">门禁 —</span>
+      <a class="badge b-neutral" href="https://github.com/Jason-Hsia/envspec-agent" target="_blank" rel="noopener" title="查看源码仓库">源码 ↗</a>
     </div>
     <nav class="tabs" id="tabs">
       <button data-tab="ask" class="on">问答台</button>
