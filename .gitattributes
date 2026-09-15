@@ -1,0 +1,10 @@
+# 统一按 LF 入库，避免 Windows 与 Unix 之间的换行符抖动。
+# 本项目多处依赖「逐字节一致」（parity_check 比对答案 SHA256），
+# 换行符被自动转换会制造查不出来的差异。
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

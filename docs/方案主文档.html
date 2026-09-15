@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>环保规范检索 Agent — 带评测闭环的垂直领域问答方案</title>
+<style>
+:root{
+  --ink:#14181c; --ink-2:#3d4a54; --ink-3:#6b7883; --ink-4:#93a0aa;
+  --line:#e2e7ea; --line-2:#eef2f4;
+  --bg:#ffffff; --bg-2:#f7f9fa; --bg-3:#eef3f4;
+  --teal:#0F6E56; --teal-2:#1D9E75; --teal-bg:#E1F5EE; --teal-line:#9FE1CB;
+  --red:#A32D2D; --red-bg:#FCEBEB; --red-line:#F7C1C1;
+  --amber:#854F0B; --amber-bg:#FAEEDA; --amber-line:#FAC775;
+  --blue:#185FA5; --blue-bg:#E6F1FB; --blue-line:#B5D4F4;
+  --purple:#534AB7; --purple-bg:#EEEDFE;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  color:var(--ink); background:var(--bg); line-height:1.75;
+  font-size:15px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 32px}
+
+/* ---------- hero ---------- */
+.hero{border-bottom:1px solid var(--line);padding:64px 0 40px;background:var(--bg-2)}
+.eyebrow{font-size:12.5px;letter-spacing:.14em;color:var(--teal);font-weight:600;text-transform:uppercase;margin-bottom:18px}
+h1{font-size:34px;line-height:1.3;font-weight:700;letter-spacing:-.01em;margin-bottom:16px}
+h1 .sub{display:block;font-size:19px;font-weight:400;color:var(--ink-3);margin-top:10px;letter-spacing:0}
+.lede{font-size:16px;color:var(--ink-2);max-width:760px}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;
+  font-size:13px;font-weight:500;border:1px solid}
+.badge.ok{background:var(--teal-bg);border-color:var(--teal-line);color:var(--teal)}
+.badge.warn{background:var(--red-bg);border-color:var(--red-line);color:var(--red)}
+.badge.info{background:var(--bg-3);border-color:var(--line);color:var(--ink-2)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+/* ---------- sections ---------- */
+section{padding:52px 0;border-bottom:1px solid var(--line-2)}
+section:last-of-type{border-bottom:none}
+h2{font-size:23px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em;display:flex;align-items:baseline;gap:12px}
+h2 .num{font-size:13px;font-weight:600;color:var(--teal);letter-spacing:.08em;flex:none}
+.sec-lede{color:var(--ink-3);font-size:14.5px;margin-bottom:30px;max-width:820px}
+h3{font-size:17px;font-weight:600;margin:34px 0 12px}
+h3:first-of-type{margin-top:0}
+h4{font-size:14.5px;font-weight:600;margin:22px 0 8px;color:var(--ink-2)}
+p{margin-bottom:14px;color:var(--ink-2)}
+p strong{color:var(--ink);font-weight:600}
+ul,ol{margin:0 0 16px 0;padding-left:22px;color:var(--ink-2)}
+li{margin-bottom:7px}
+li strong{color:var(--ink);font-weight:600}
+code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;background:var(--bg-3);
+  padding:2px 6px;border-radius:4px;color:var(--teal);border:1px solid var(--line-2)}
+
+/* ---------- callout ---------- */
+.note{border-left:3px solid var(--teal-2);background:var(--teal-bg);padding:16px 20px;border-radius:0 8px 8px 0;margin:20px 0}
+.note.warn{border-left-color:var(--red);background:var(--red-bg)}
+.note.amber{border-left-color:var(--amber);background:var(--amber-bg)}
+.note p:last-child{margin-bottom:0}
+.note .tag{display:block;font-size:12.5px;font-weight:700;letter-spacing:.06em;margin-bottom:6px;color:var(--teal)}
+.note.warn .tag{color:var(--red)}
+.note.amber .tag{color:var(--amber)}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px}
+th{text-align:left;font-weight:600;color:var(--ink);background:var(--bg-3);
+  padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:13px}
+td{padding:11px 14px;border-bottom:1px solid var(--line-2);color:var(--ink-2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td strong{color:var(--ink)}
+.tbl-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:18px 0}
+.tbl-wrap table{margin:0}
+.tbl-wrap td:first-child,.tbl-wrap th:first-child{padding-left:18px}
+.tbl-wrap td:last-child,.tbl-wrap th:last-child{padding-right:18px}
+.num-col{font-variant-numeric:tabular-nums;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px}
+
+/* ---------- cards ---------- */
+.grid{display:grid;gap:16px;margin:20px 0}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--bg)}
+.card h4{margin-top:0;font-size:14.5px;color:var(--ink);display:flex;align-items:center;gap:8px}
+.card p{font-size:13.5px;margin-bottom:0;color:var(--ink-3)}
+.card .k{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:11.5px;color:var(--teal);
+  background:var(--teal-bg);padding:2px 7px;border-radius:4px;font-weight:600;letter-spacing:.02em}
+
+/* ---------- phase ---------- */
+.phase{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px}
+.phase-hd{display:flex;align-items:center;gap:16px;padding:16px 22px;background:var(--bg-2);border-bottom:1px solid var(--line)}
+.phase-id{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12px;font-weight:700;
+  color:#fff;background:var(--teal);padding:4px 10px;border-radius:6px;letter-spacing:.04em;flex:none}
+.phase-hd h3{margin:0;font-size:16.5px;flex:1}
+.phase-dur{font-size:12.5px;color:var(--ink-3);flex:none}
+.phase-bd{padding:0}
+.phase-row{display:grid;grid-template-columns:110px 1fr;gap:0;border-bottom:1px solid var(--line-2)}
+.phase-row:last-child{border-bottom:none}
+.phase-row .lbl{padding:14px 18px;font-size:12.5px;font-weight:600;color:var(--ink-3);
+  background:var(--bg-2);border-right:1px solid var(--line-2)}
+.phase-row .val{padding:14px 20px;font-size:13.5px;color:var(--ink-2)}
+.phase-row .val ul{margin:0;padding-left:18px}
+.phase-row .val li{margin-bottom:4px}
+.gate{color:var(--teal);font-weight:600}
+.risk{color:var(--amber)}
+
+/* ---------- misc ---------- */
+pre{background:#1a2226;color:#dfe7ea;padding:18px 20px;border-radius:10px;overflow-x:auto;
+  font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.7;margin:16px 0}
+pre .c{color:#7d9199}
+pre .k{color:#8fd6b4}
+pre .s{color:#f0c789}
+.tree{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:18px 22px;
+  font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.85;color:var(--ink-2);white-space:pre;overflow-x:auto}
+.tree b{color:var(--ink);font-weight:600}
+.tree i{color:var(--teal);font-style:normal}
+.foot{padding:36px 0 60px;color:var(--ink-4);font-size:13px}
+.kv{display:flex;gap:10px;font-size:13.5px;padding:9px 0;border-bottom:1px solid var(--line-2)}
+.kv:last-child{border-bottom:none}
+.kv .kk{width:150px;flex:none;color:var(--ink-3);font-weight:500}
+.kv .vv{color:var(--ink-2)}
+hr{border:none;border-top:1px solid var(--line-2);margin:30px 0}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">垂直领域 Agent · 项目方案</div>
+    <h1>环保规范检索 Agent
+      <span class="sub">RAG + Tool Use，面向环境工程的学习与工作场景，自带评测闭环</span>
+    </h1>
+    <p class="lede">
+      一套可运行、可评测、可持续迭代的生态环境标准问答系统。核心不是"接个大模型做检索"，
+      而是把环保领域两个绕不开的硬约束——<strong>标准会失效</strong>与<strong>限值附条件</strong>——
+      转化成可被指标度量、可被门禁拦截的工程问题。
+    </p>
+    <div class="badges">
+      <span class="badge ok"><span class="dot"></span>时效性违规率 0.0%</span>
+      <span class="badge ok"><span class="dot"></span>数值准确率 100%</span>
+      <span class="badge ok"><span class="dot"></span>结论一致率 100%</span>
+      <span class="badge ok"><span class="dot"></span>引用精度 97.6%</span>
+      <span class="badge ok"><span class="dot"></span>24/24 门禁通过</span>
+      <span class="badge info"><span class="dot"></span>8 个领域工具</span>
+      <span class="badge info"><span class="dot"></span>四层评测 15 项指标</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ============ 1 ============ -->
+<section>
+  <h2><span class="num">01</span>项目定位与核心判断</h2>
+  <p class="sec-lede">先说清楚为什么这件事值得做、以及它区别于"套壳 RAG"的地方在哪里。</p>
+
+  <h3>1.1 领域的两道硬约束</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h4>约束一：标准会失效</h4>
+      <p>国标与行标持续修订，被替代的版本仍会长期留在语料、教材和旧报告里。
+      GB 18597-2001 的条文措辞甚至比 2023 版更贴合"贮存设施选址"这类提问词，
+      向量检索会优先命中失效版本。用户拿到一个数值，却不知道它早已作废。</p>
+    </div>
+    <div class="card">
+      <h4>约束二：限值附条件</h4>
+      <p>同一个污染物，地表水按 Ⅰ–Ⅴ 类分档、废水按一级/二级/三级分档、湖库与河流不同、
+      冬季与常规时段不同、地方标准严于国标。少说一个条件，答案就是错的。</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="tag">核心判断</span>
+    <p>这两条约束恰恰是 Tool Use 不可替代的理由。时效性只能靠<strong>查状态表</strong>判定，
+    限值只能靠<strong>结构化表查询</strong>取值 —— 都是确定性操作，不该交给语言模型的记忆与推理。
+    因此本项目的技术重心是：<strong>把该确定的事交给代码，把该表达的事交给模型</strong>，
+    并用一套指标把两者各自的贡献分开度量。</p>
+  </div>
+
+  <h3>1.2 与传统 RAG 方案的差异</h3>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:150px">维度</th><th>常规 RAG 方案</th><th>本方案</th></tr>
+    <tr><td>切分粒度</td><td>固定长度滑窗（512 token）</td><td>按"章—条—款"层级切分，条文是不可分割的检索单元，支撑精确引用</td></tr>
+    <tr><td>限值存储</td><td>留在文本里，靠模型读</td><td>抽成结构化记录（污染物 × 介质 × 等级 × 条件 × 数值 × 单位）</td></tr>
+    <tr><td>时效性</td><td>无处理</td><td>独立状态机 + 替代链 + 强制校验工具 + 一票否决门禁</td></tr>
+    <tr><td>多标准冲突</td><td>召回什么答什么</td><td>专门的适用优先级裁决工具（时效性 → 行业 → 属地 → 层级）</td></tr>
+    <tr><td>错误处理</td><td>无依据时编造</td><td>证据不足即拒答，有明确判据</td></tr>
+    <tr><td>质量保证</td><td>人工抽查若干条</td><td>四层 15 项指标的固定评测集 + 自动化归因 + 发布门禁</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section>
+  <h2><span class="num">02</span>整体架构</h2>
+  <p class="sec-lede">五层结构。数据自下而上流动，评测横切所有层。</p>
+
+  <svg viewBox="0 0 1000 560" width="100%" style="margin:8px 0 6px" role="img">
+    <title>环保规范检索 Agent 五层架构</title>
+    <desc>自下而上为知识库层、检索层、工具层、编排层、交互层，右侧为横切的评测与观测体系。</desc>
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="#9aa8b1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- L5 交互层 -->
+    <rect x="30" y="30" width="660" height="72" rx="12" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+    <text x="52" y="58" font-size="14" font-weight="600" fill="#3C3489" font-family="sans-serif">L5 交互层</text>
+    <text x="52" y="80" font-size="12.5" fill="#534AB7" font-family="sans-serif">问答界面 · 引用高亮溯源 · 反馈采集（点踩/追问）· 结果导出</text>
+
+    <!-- L4 编排层 -->
+    <rect x="30" y="120" width="660" height="82" rx="12" fill="#E6F1FB" stroke="#85B7EB" stroke-width="1"/>
+    <text x="52" y="148" font-size="14" font-weight="600" fill="#0C447C" font-family="sans-serif">L4 编排层</text>
+    <text x="52" y="170" font-size="12.5" fill="#185FA5" font-family="sans-serif">查询理解（槽位抽取）· 规划器（规则 / LLM 双模）· 证据聚合 · 引用生成 · 拒答策略</text>
+
+    <!-- L3 工具层 -->
+    <rect x="30" y="220" width="660" height="102" rx="12" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+    <text x="52" y="248" font-size="14" font-weight="600" fill="#085041" font-family="sans-serif">L3 工具层（8 个确定性工具）</text>
+    <g font-family="sans-serif" font-size="12" fill="#0F6E56">
+      <rect x="52" y="262" width="146" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="125" y="279" text-anchor="middle">search_standard</text>
+      <rect x="208" y="262" width="146" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="281" y="279" text-anchor="middle">get_clause</text>
+      <rect x="364" y="262" width="150" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="439" y="279" text-anchor="middle">check_status ★</text>
+      <rect x="524" y="262" width="146" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="597" y="279" text-anchor="middle">lookup_limit</text>
+      <rect x="52" y="294" width="146" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="125" y="311" text-anchor="middle">judge_compliance</text>
+      <rect x="208" y="294" width="146" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="281" y="311" text-anchor="middle">trace_chain ★</text>
+      <rect x="364" y="294" width="150" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="439" y="311" text-anchor="middle">resolve_applicable ★</text>
+      <rect x="524" y="294" width="146" height="26" rx="6" fill="#ffffff" stroke="#9FE1CB" stroke-width="1"/>
+      <text x="597" y="311" text-anchor="middle">classify_eia</text>
+    </g>
+
+    <!-- L2 检索层 -->
+    <rect x="30" y="340" width="660" height="86" rx="12" fill="#FAEEDA" stroke="#EF9F27" stroke-width="1"/>
+    <text x="52" y="368" font-size="14" font-weight="600" fill="#633806" font-family="sans-serif">L2 检索层</text>
+    <text x="52" y="390" font-size="12.5" fill="#854F0B" font-family="sans-serif">领域分词 · BM25 稀疏召回 · 向量稠密召回 · RRF 融合 · 元数据过滤 · 时效性重排 · 查询分解</text>
+    <text x="52" y="411" font-size="12" fill="#BA7517" font-family="sans-serif">↳ 查询理解：污染物 · 介质 · 等级 · 属地 · 行业 · 标准号 · 意图</text>
+
+    <!-- L1 知识库层 -->
+    <rect x="30" y="444" width="660" height="86" rx="12" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+    <text x="52" y="472" font-size="14" font-weight="600" fill="#444441" font-family="sans-serif">L1 知识库层</text>
+    <text x="52" y="494" font-size="12.5" fill="#5F5E5A" font-family="sans-serif">标准元数据 · 条文库（层级切分）· 限值结构化表 · 替代关系链 · 引用关系图</text>
+    <text x="52" y="515" font-size="12" fill="#888780" font-family="sans-serif">↳ 数据源：生态环境部标准库 · 全国标准信息公共服务平台 · 地方生态环境厅</text>
+
+    <!-- 箭头 -->
+    <line x1="360" y1="444" x2="360" y2="430" stroke="#9aa8b1" stroke-width="1.6" marker-end="url(#ar)"/>
+    <line x1="360" y1="340" x2="360" y2="326" stroke="#9aa8b1" stroke-width="1.6" marker-end="url(#ar)"/>
+    <line x1="360" y1="220" x2="360" y2="206" stroke="#9aa8b1" stroke-width="1.6" marker-end="url(#ar)"/>
+    <line x1="360" y1="120" x2="360" y2="106" stroke="#9aa8b1" stroke-width="1.6" marker-end="url(#ar)"/>
+
+    <!-- 右侧评测体系（横切） -->
+    <rect x="716" y="30" width="254" height="500" rx="14" fill="#FCEBEB" stroke="#F09595" stroke-width="1"/>
+    <text x="843" y="60" text-anchor="middle" font-size="14" font-weight="600" fill="#791F1F" font-family="sans-serif">横切：评测与闭环</text>
+    <line x1="740" y1="74" x2="946" y2="74" stroke="#F7C1C1" stroke-width="1"/>
+
+    <g font-family="sans-serif" font-size="12">
+      <text x="740" y="102" fill="#A32D2D" font-weight="600">L1 检索层</text>
+      <text x="740" y="122" fill="#501313">Recall@5/10 · Precision@5</text>
+      <text x="740" y="140" fill="#501313">MRR · nDCG@10</text>
+
+      <text x="740" y="174" fill="#A32D2D" font-weight="600">L2 生成层</text>
+      <text x="740" y="194" fill="#501313">数值准确率 · 要点覆盖率</text>
+      <text x="740" y="212" fill="#501313">引用精度 / 召回</text>
+
+      <text x="740" y="246" fill="#A32D2D" font-weight="600">L3 工具层</text>
+      <text x="740" y="266" fill="#501313">选择准确率 · 参数正确率</text>
+      <text x="740" y="284" fill="#501313">成功率 · 调用效率</text>
+
+      <text x="740" y="318" fill="#A32D2D" font-weight="600">L4 端到端</text>
+      <text x="740" y="338" fill="#501313">时效性违规率（一票否决）</text>
+      <text x="740" y="356" fill="#501313">拒答正确率 · 人工通过率</text>
+    </g>
+
+    <line x1="740" y1="382" x2="946" y2="382" stroke="#F7C1C1" stroke-width="1"/>
+    <text x="843" y="406" text-anchor="middle" font-size="12.5" font-weight="600" fill="#791F1F" font-family="sans-serif">闭环机制</text>
+    <g font-family="sans-serif" font-size="12" fill="#501313">
+      <text x="740" y="432">bad case → 归因八分类</text>
+      <text x="740" y="452">→ 定向优化动作</text>
+      <text x="740" y="472">→ 修复 + 回归测试</text>
+      <text x="740" y="492">→ 门禁校验 → 合入</text>
+    </g>
+    <text x="843" y="518" text-anchor="middle" font-size="11.5" fill="#A32D2D" font-family="sans-serif">← 回溯过往版本，防劣化</text>
+  </svg>
+</section>
+
+<!-- ============ 3 ============ -->
+<section>
+  <h2><span class="num">03</span>技术路径</h2>
+  <p class="sec-lede">五条主线：知识库构建、检索增强、工具调用、评测指标、闭环优化。每一条都标注了真实踩过的坑。</p>
+
+  <h3>3.1 知识库构建：为检索而设计，不是为存储而设计</h3>
+
+  <h4>数据源</h4>
+  <ul>
+    <li><strong>国家层面</strong>：生态环境部标准库（<code>mee.gov.cn/ywgz/fgbz</code>）——国家标准与行业标准全文，含发布/实施日期、替代关系公告</li>
+    <li><strong>标准元数据</strong>：全国标准信息公共服务平台（<code>std.samr.gov.cn</code>）——用于交叉校验标准号的现行/废止状态</li>
+    <li><strong>地方标准</strong>：各省生态环境厅地方标准栏目，例如浙江省 <code>DB33/ 2169-2018</code></li>
+    <li><strong>管理名录</strong>：《建设项目环境影响评价分类管理名录》等非标准类规范性文件</li>
+  </ul>
+  <p>接入方式统一为「官方数据源适配器」——每个发布机构的 PDF 版式不同，适配器各自负责版式解析，
+  输出统一的中间结构。这是 P0 阶段最大的工作量来源，也是唯一无法用模型绕过去的部分。</p>
+
+  <h4>三层数据模型</h4>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:130px">实体</th><th>关键字段</th><th style="width:230px">为什么需要</th></tr>
+    <tr><td><strong>Standard</strong><br>标准</td><td>标准号、名称、层级、介质、发布/实施日期、<strong>状态</strong>（现行/被替代/废止）、替代链、适用范围（行业/区域）</td><td>时效性判定与适用优先级裁决的唯一依据</td></tr>
+    <tr><td><strong>Clause</strong><br>条文</td><td>条文号、章节路径、类型（定义/限值/方法/管理/监测）、正文、引用关系</td><td>精确引用的最小单元；类型用于按问题意图加权</td></tr>
+    <tr><td><strong>LimitRecord</strong><br>限值</td><td>污染物、别名、介质、单位、等级、<strong>适用条件</strong>、限值类型、数值</td><td>让"取哪个数"变成一次带条件的表查询，而非阅读理解</td></tr>
+  </table>
+  </div>
+
+  <h4>切分策略：按条文层级，而非固定长度</h4>
+  <p>以条文编号（<code>4.1</code> / <code>6.1.1</code>）与表号（<code>表1</code>）为切分锚点，
+  保留章节面包屑写入元数据。固定长度滑窗会把一条条文劈成两半，
+  既破坏了"引用必须落到条文号"的可溯源要求，也会让限值与其适用条件被拆散。</p>
+
+  <div class="note amber">
+    <span class="tag">已识别的工程坑</span>
+    <p>标准号归一化：<code>GB 3838—2002</code>（全角破折号）、<code>GB3838-2002</code>（无空格）、
+    <code>gb 3838 - 2002</code>（多余空格）会被当成三个不同标准，导致引用关系图断裂、时效性校验漏判。
+    必须在入库时统一归一化。</p>
+  </div>
+
+  <div class="note warn">
+    <span class="tag">数据可信度必须显式建模</span>
+    <p>本仓库的 <code>data/standards_seed.json</code> 是<strong>结构演示数据</strong>，每条记录带 <code>verified</code> 字段。
+    生产环境必须以官方文本重新灌入并置 <code>verified=true</code>；
+    <strong>评测集同样不得建立在校验数据之上</strong>——用未核验的数据证明系统准确，是自欺。</p>
+  </div>
+
+  <hr>
+
+  <h3>3.2 检索增强：三处不放入门教程的设计</h3>
+
+  <h4>① 查询理解先行，元数据过滤前置</h4>
+  <p>先抽取 7 类槽位：<strong>污染物 · 介质 · 等级 · 属地 · 行业 · 标准号 · 意图</strong>，
+  在元数据层做硬过滤，再进向量计算。这一步拦掉的是最致命的一类错误——
+  "问废水排放标准，答成地表水质量标准"。过滤之后再算相似度，也让算力不被浪费。</p>
+
+  <h4>② RRF 融合而非加权求和</h4>
+  <p>BM25 分数与向量余弦分数量纲不可比，加权系数需要反复调参且跨查询不稳。
+  RRF（Reciprocal Rank Fusion）只用排名、不用分数，跨查询稳定性显著更好。
+  环保语料还特别依赖 BM25：用户大量输入 <code>GB 3838-2002 表1 COD Ⅲ类</code> 这类强符号查询，
+  判别信息全在罕见 token 上，稠密向量表达不了。</p>
+
+  <h4>③ 时效性参与重排</h4>
+  <p>现行标准在重排时加分，被替代标准降权但<strong>不删除</strong>。
+  保留是为了让下游能主动提示"你查的这条已被替代"——用户往往正是拿着旧报告来核对的。
+  降权则保证正确的现行版本排在前列。</p>
+
+  <div class="note warn">
+    <span class="tag">代价最高的一类 bug：罗马数字等级前缀误匹配</span>
+    <p>朴素子串匹配 <code>alias in query</code> 会让 <code>"iii类"</code> 同时命中 <code>"i类"</code>、<code>"ii类"</code>、<code>"iii类"</code>，
+    于是"地表水Ⅲ类 COD 限值"被解析成 Ⅰ/Ⅱ/Ⅲ 三个等级，等级过滤失效、取到错误档位。
+    正确做法是<strong>正则 + 有序候选（长候选优先）</strong>，并按介质选择对应的等级体系：</p>
+    <pre><span class="c"># 长候选必须排在前面，否则 "iii" 会被 "i" 抢先吃掉</span>
+_RE_WATER_GRADE = re.compile(<span class="s">r"(iii|ii|iv|i|v)\s*类"</span>)
+
+<span class="c"># 声环境功能区 0-4 类与地表水 Ⅰ-Ⅴ 类语义完全不同，必须按介质分流</span>
+<span class="k">def</span> extract_grades(low, media):
+    <span class="k">if</span> <span class="s">"noise"</span> <span class="k">in</span> media:      <span class="c"># "2类" → 声环境功能区 2 类</span>
+        ...
+    <span class="k">if</span> <span class="s">"water_surface"</span> <span class="k">in</span> media: <span class="c"># "Ⅲ类" → 地表水 Ⅲ 类</span>
+        ...</pre>
+  </div>
+
+  <h4>④ 查询分解</h4>
+  <p>对比类问题（"地表水Ⅲ类 COD 限值与废水一级排放 COD 限值有什么区别"）不存在唯一适用标准，
+  必须拆成多路查询分别取证。但<strong>不能只看"出现多个介质"就判定为对比题</strong>——
+  "排入地表水Ⅲ类水域的工业废水执行几级标准"同样同时出现地表水与废水，
+  它是单一问题（地表水只是用来定级的受纳水体）。判据必须是"多介质 <em>且</em> 有显式对比词"。</p>
+
+  <hr>
+
+  <h3>3.3 工具调用：8 个工具，每个都对应一类模型做不好的事</h3>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:200px">工具</th><th>职责</th><th style="width:200px">存在的理由</th></tr>
+    <tr><td><code>search_standard</code></td><td>自然语言检索标准条文</td><td>探索式查询，不知道标准号时用</td></tr>
+    <tr><td><code>get_clause</code></td><td>按条文 ID 取原文</td><td>禁止模型凭记忆复述条文，引用必须来自原文</td></tr>
+    <tr><td><code>check_standard_status</code> ★</td><td>标准时效性校验</td><td><strong>模型无法知道自己记的是哪一版</strong>；一票否决指标的执行者</td></tr>
+    <tr><td><code>lookup_limit</code></td><td>结构化限值查询</td><td>带适用条件的精确取值，不能靠阅读理解</td></tr>
+    <tr><td><code>judge_compliance</code></td><td>达标判定 + 单位换算</td><td>数值计算与量纲换算不交给 LLM</td></tr>
+    <tr><td><code>trace_standard_chain</code> ★</td><td>替代链追溯</td><td>"该用哪个版本"需要图遍历，不是检索问题</td></tr>
+    <tr><td><code>resolve_applicable_standard</code> ★</td><td>多标准适用优先级裁决</td><td>国标/行标/地标冲突时，需要规则引擎而非相似度</td></tr>
+    <tr><td><code>classify_eia_category</code></td><td>环评类别判定</td><td>名录是规则表，判定是查表不是生成</td></tr>
+  </table>
+  </div>
+
+  <h4>适用优先级裁决的排序规则</h4>
+  <p>依据《标准化法》与综合排放标准自身的适用条款，按五个维度依次排序：</p>
+  <ol>
+    <li><strong>时效性</strong> —— 现行版本绝对优先</li>
+    <li><strong>适用行业</strong> —— 行业不匹配且非通用标准时降级</li>
+    <li><strong>属地</strong> —— 地方标准在本行政区域内优先适用</li>
+    <li><strong>标准层级</strong> —— 行业标准 / 地方标准优于国家综合标准</li>
+    <li><strong>从严</strong> —— 同分时取限值更小者</li>
+  </ol>
+
+  <div class="note warn">
+    <span class="tag">少一个维度就会"看起来有理、结论错误"</span>
+    <p>最初只实现了「时效性 + 属地 + 层级」三维。结果是：问"工业废水 COD 限值"，
+    系统回答了 <code>DB33/ 2169-2018</code> 的 30 mg/L —— 因为它是浙江地标、现行有效、层级更高。
+    但 DB33 2169 <strong>只管城镇污水处理厂</strong>，与工业废水无关，正确答案是 GB 8978 一级标准的 100 mg/L。
+    加入「适用行业」维度后才修正。这类缺陷指标不暴露就永远发现不了。</p>
+  </div>
+
+  <h4>时效性校验必须由规划器无条件前置</h4>
+  <p>关键设计：只要查询中出现标准号，规划器就<strong>无条件插入</strong> <code>check_standard_status</code>，
+  不交给模型"判断要不要"。时效性违规是唯一的一票否决指标，不能有概率性——
+  把业务规则写进系统提示是拦不住的，必须写进代码路径。</p>
+
+  <pre><span class="c"># 0) 硬约束前置：任何点名了标准号的查询，都必须先复核时效性</span>
+<span class="k">for</span> r <span class="k">in</span> slots.std_refs[:3]:
+    plan.append({<span class="s">"tool"</span>: <span class="s">"check_standard_status"</span>, <span class="s">"args"</span>: {<span class="s">"std_id"</span>: r}})
+
+<span class="c"># 引用生成处的硬过滤：废止标准只提示替代关系，绝不引用其原文</span>
+extra = [h <span class="k">for</span> h <span class="k">in</span> evidence_clauses.values()
+         <span class="k">if</span> ... <span class="k">and not</span> h.get(<span class="s">"is_stale"</span>)]</pre>
+
+  <hr>
+
+  <h3>3.4 评测指标：四层 15 项，能用规则判定的绝不用模型打分</h3>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:90px">层级</th><th style="width:180px">指标</th><th style="width:100px">门槛</th><th>说明</th></tr>
+    <tr><td rowspan="5"><strong>L1</strong><br>检索</td><td>Recall@5</td><td class="num-col">≥0.85</td><td>正确条文是否进前 5，与生成质量解耦</td></tr>
+    <tr><td>Recall@10</td><td class="num-col">—</td><td>长尾覆盖率</td></tr>
+    <tr><td>Precision@5</td><td class="num-col">—</td><td>前 5 的噪声比例</td></tr>
+    <tr><td>MRR</td><td class="num-col">≥0.70</td><td>首个正确结果的位置</td></tr>
+    <tr><td>nDCG@10</td><td class="num-col">—</td><td>排序质量</td></tr>
+
+    <tr><td rowspan="5"><strong>L2</strong><br>生成</td><td>数值准确率</td><td class="num-col">≥0.90</td><td>标注数值是否<strong>出现在答案中</strong>。<strong>确定性正则判定</strong></td></tr>
+    <tr><td><strong>结论一致率</strong></td><td class="num-col">≥0.95</td><td><strong>裁决题的结论是否等于标注答案</strong>。只对含"适用优先级裁决"结论句的题生效</td></tr>
+    <tr><td>要点覆盖率</td><td class="num-col">—</td><td>关键要点是否齐全（如"河流/湖库"双值）</td></tr>
+    <tr><td>引用精度</td><td class="num-col">≥0.90</td><td>引用中无废止标准、无无关标准</td></tr>
+    <tr><td>引用召回</td><td class="num-col">—</td><td>该引的标准有没有引全</td></tr>
+
+    <tr><td rowspan="4"><strong>L3</strong><br>工具</td><td>工具选择准确率</td><td class="num-col">≥0.90</td><td>是否走了预期工具路径</td></tr>
+    <tr><td>参数正确率</td><td class="num-col">—</td><td>槽位是否完整传递（等级/属地/行业）</td></tr>
+    <tr><td>调用成功率</td><td class="num-col">—</td><td>工具返回 error 的比例</td></tr>
+    <tr><td>调用效率</td><td class="num-col">—</td><td>超预算衰减，防止靠暴力多调工具刷分</td></tr>
+
+    <tr><td rowspan="3"><strong>L4</strong><br>端到端</td><td><strong>时效性违规率</strong></td><td class="num-col" style="color:var(--red);font-weight:600">= 0</td><td><strong>一票否决</strong>。引用已废止标准的样例占比</td></tr>
+    <tr><td>拒答正确率</td><td class="num-col">≥0.80</td><td>无依据时拒答、有依据时作答</td></tr>
+    <tr><td>人工通过率</td><td class="num-col">—</td><td>抽检子集的领域专家判定</td></tr>
+  </table>
+  </div>
+
+  <h4>为什么数值类指标必须用规则判定</h4>
+  <p>环保场景里限值 <code>20</code> 与 <code>150</code> 的差别就是合规与违法。
+  用 LLM-as-judge 打分会让"20 和 150 差不多"这种判断出现，
+  因此数值准确率、时效性违规率全部由确定性代码判定，
+  LLM-as-judge 只用于开放式表述质量的辅助评估。</p>
+
+  <div class="note">
+    <span class="tag">指标定义本身也会出错</span>
+    <p>正确拒答时本就不该有引用，但最初的 <code>citation_precision</code> 对空引用返回 0.0，
+    导致 4 道正确的拒答题系统性拉低引用精度（0.952 → 0.802 的差距就来自这里）。
+    修正为：按 <code>should_refuse</code> 判定是否记 N/A，而不是按"有没有引用"——
+    否则会把真正的"漏引"也误判成 N/A，把缺陷洗成正常。</p>
+  </div>
+
+  <div class="note" style="border-left-color:var(--red)">
+    <span class="tag" style="background:var(--red-soft);color:var(--red)">更严重的一类：指标替错误答案背书</span>
+    <p><strong>"数值准确率"问的是「答案正文里出现过这个数吗」，不保证「结论就是它」。</strong>
+    裁决类问题（排入某水域执行几级标准、属地执行哪个标准）会把候选成套列进正文，
+    于是 Q006 的结论写着"三级 500 mg/L"、标注答案是"一级 100 mg/L"，
+    而数值准确率与要点覆盖率<strong>双双给出 1.0</strong>，端到端门禁判为通过。</p>
+    <p>这不是假想：该假通过在交付前的人工复核中发现，随后新增 <strong>结论一致率</strong>
+    专门盯"唯一结论"。修复后该题仍不及格，直到把定级规则补上才通过 ——
+    也就是说，<strong>这个指标确实抓住了一个真实缺陷，而不是把及格线调低了</strong>。</p>
+  </div>
+
+  <div class="note" style="border-left-color:var(--red)">
+    <span class="tag" style="background:var(--red-soft);color:var(--red)">门禁也在静默失效</span>
+    <p>门禁配置里写的是 <code>recall_at_5</code>，聚合指标里叫 <code>recall@5</code>；
+    取不到值时旧代码 <code>continue</code> 跳过。结果是 <strong>7 个门禁里有 3 个从未真正生效</strong>
+    （<code>recall_at_5</code> / <code>tool_selection_accuracy</code> / <code>refusal_accuracy</code>）。</p>
+    <p>它们当时恰好都达标，所以结论没错，但报告上"通过"与"没把关"长得完全一样。
+    现在改为：<strong>门禁引用了不存在的指标 = 配置错误 = 按不通过处理</strong>，
+    并在报告里显式打印"实际校验 N/M 项"。</p>
+  </div>
+
+  <hr>
+
+  <h3>3.5 闭环优化：归因必须能映射到动作</h3>
+  <p>"跑一次评测"不叫闭环。闭环的判据是：<strong>评测结果能自动产出下一轮的具体修复清单</strong>。
+  本项目的归因引擎定义了 8 类缺陷，每类绑定确定的修复动作与责任层。</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:60px">代号</th><th style="width:150px">归因</th><th style="width:90px">责任层</th><th>定向动作</th></tr>
+    <tr><td class="num-col">R1</td><td>检索未召回</td><td>retrieval</td><td>补领域同义词表 / 检查元数据过滤是否过窄 / 降低分数阈值复测</td></tr>
+    <tr><td class="num-col">R2</td><td>召回含噪声</td><td>retrieval</td><td>提高重排权重 / 引入 cross-encoder / 收紧条文类型过滤</td></tr>
+    <tr><td class="num-col">R3</td><td>召回不足</td><td>retrieval</td><td>提升融合 top_k / <strong>查询分解</strong> / 增加按标准号定向检索</td></tr>
+    <tr><td class="num-col">T1</td><td>工具选择错误</td><td>planning</td><td>补规划器规则分支 / 增加 few-shot / 检查槽位抽取遗漏</td></tr>
+    <tr><td class="num-col">T2</td><td>工具执行失败</td><td>tools</td><td>校验参数 schema / 增加模糊匹配降级 / 补录缺失数据</td></tr>
+    <tr><td class="num-col">G1</td><td>数值/要点错误</td><td>generation</td><td>确认是否调用了取值工具 / 检查限值表条件覆盖 / 补评测标注</td></tr>
+    <tr><td class="num-col" style="color:var(--red);font-weight:600">G2</td><td>时效性违规</td><td>generation</td><td><strong>最高优先级</strong>：废止条文硬过滤 / 自动追溯替代链并替换版本</td></tr>
+    <tr><td class="num-col">U1</td><td>拒答行为错误</td><td>generation</td><td>作答方向：收紧阈值与 prompt 约束；拒答方向：检查过滤是否剪掉证据</td></tr>
+  </table>
+  </div>
+
+  <h4>闭环的四步运转</h4>
+  <ol>
+    <li><strong>评测</strong>：<code>run_eval</code> 跑全量黄金集，产出逐题明细与分类别切片</li>
+    <li><strong>归因</strong>：<code>diagnose</code> 自动分类，按「时效性 → 拒答 → 数值 → 检索 → 规划 → 工具」排序输出修复清单</li>
+    <li><strong>修复</strong>：按清单定向改动，改动范围限定在对应责任层</li>
+    <li><strong>门禁</strong>：重跑评测，任一门槛未达标则不允许合入；<code>stale_citation_rate &gt; 0</code> 直接一票否决</li>
+  </ol>
+
+  <div class="note amber">
+    <span class="tag">闭环最容易被忽略的价值</span>
+    <p>修复往往会引入新缺陷。本项目第 5 轮迭代就是被回归测试抓住的：
+    为了解决对比类问题新增了查询分解分支，判据写成"多介质"，
+    结果把"排入地表水Ⅲ类水域的工业废水"也误判成对比题，Q006 直接归零。
+    没有回归测试，这个劣化会静默上线。</p>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section>
+  <h2><span class="num">04</span>分步实施</h2>
+  <p class="sec-lede">五个阶段，每阶段交付可验证的产物，有明确验收门槛。总周期约 6 周（单人全职等效）。</p>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="phase-id">P0</span><h3>领域建模与数据基座</h3><span class="phase-dur">1 周</span></div>
+    <div class="phase-bd">
+      <div class="phase-row"><div class="lbl">关键模块</div><div class="val">
+        <ul>
+          <li>Standard / Clause / LimitRecord 三层数据模型与校验器</li>
+          <li>条文级切分器（章节层级 + 表号锚点 + 章节面包屑）</li>
+          <li>限值表结构化抽取（污染物 × 介质 × 等级 × 条件 × 数值 × 单位）</li>
+          <li>时效性状态机与替代链（现行 / 被替代 / 废止 / 草稿）</li>
+          <li>官方数据源适配器（按发布机构分别实现版式解析）</li>
+          <li>标准号归一化与引用关系图构建</li>
+        </ul></div></div>
+      <div class="phase-row"><div class="lbl">产出物</div><div class="val">
+        <span class="k">schema.py</span> <span class="k">parser.py</span> <span class="k">build_kb.py</span>
+        <span class="k">standards.json</span> <span class="k">数据覆盖率报告</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">验收门槛</div><div class="val">
+        <span class="gate">≥300 条现行标准入库 · 替代关系链完整度 ≥95% · 限值类标准的结构化率 100% · 数据校验零错误</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">主要风险</div><div class="val">
+        <span class="risk">各发布机构 PDF 版式不统一，解析规则需逐个适配 —— 这是本阶段的主要工作量，也是唯一无法用模型绕过的部分</span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="phase-id">P1</span><h3>检索层 MVP + 检索评测</h3><span class="phase-dur">1.5 周</span></div>
+    <div class="phase-bd">
+      <div class="phase-row"><div class="lbl">关键模块</div><div class="val">
+        <ul>
+          <li>查询理解：7 类槽位抽取（污染物/介质/等级/属地/行业/标准号/意图）</li>
+          <li>领域分词与词典（保护 <code>GB 3838-2002</code>、<code>PM2.5</code>、<code>NH3-N</code> 等实体）</li>
+          <li>BM25 稀疏召回 + 向量稠密召回双路</li>
+          <li>RRF 融合 + 元数据硬过滤 + 时效性重排</li>
+          <li>检索评测集（≥100 题）与 L1 指标计算</li>
+        </ul></div></div>
+      <div class="phase-row"><div class="lbl">产出物</div><div class="val">
+        <span class="k">tokenizer.py</span> <span class="k">bm25.py</span> <span class="k">vector.py</span>
+        <span class="k">hybrid.py</span> <span class="k">L1 指标报告</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">验收门槛</div><div class="val">
+        <span class="gate">Recall@5 ≥ 0.85 · MRR ≥ 0.70</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">主要风险</div><div class="val">
+        <span class="risk">罗马数字等级前缀误匹配（Ⅲ类 vs Ⅰ/Ⅱ/Ⅲ）、声环境 0-4 类与地表水 Ⅰ-Ⅴ 类语义混淆 —— 必须按介质分流等级体系</span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="phase-id">P2</span><h3>Tool Use 与编排层</h3><span class="phase-dur">1.5 周</span></div>
+    <div class="phase-bd">
+      <div class="phase-row"><div class="lbl">关键模块</div><div class="val">
+        <ul>
+          <li>8 个工具的实现与 JSON Schema 声明</li>
+          <li>规划器双模：规则规划器（确定性、零 API 成本）+ LLM Function Calling</li>
+          <li>证据聚合、引用生成、时效性提示置顶策略</li>
+          <li>拒答策略与判据（按实质性证据判定，而非按引用数量）</li>
+          <li>查询分解分支（对比类问题多路取证）</li>
+        </ul></div></div>
+      <div class="phase-row"><div class="lbl">产出物</div><div class="val">
+        <span class="k">registry.py</span> <span class="k">loop.py</span> <span class="k">工具调用日志</span>
+        <span class="k">可交互的问答 Demo</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">验收门槛</div><div class="val">
+        <span class="gate">工具选择准确率 ≥0.90 · 结论一致率 ≥0.95 · 时效性违规率 = 0（硬门槛） · 拒答正确率 ≥0.80</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">主要风险</div><div class="val">
+        <span class="risk">槽位在工具之间传递丢失（等级未传给裁决工具会导致跨等级重选）；适用优先级裁决缺少行业维度会选出"看似有理"的错误标准</span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="phase-id">P3</span><h3>评测闭环与归因</h3><span class="phase-dur">1 周</span></div>
+    <div class="phase-bd">
+      <div class="phase-row"><div class="lbl">关键模块</div><div class="val">
+        <ul>
+          <li>四层指标计算（含确定性数值判定与引用判定）</li>
+          <li>黄金评测集：含<strong>时效性陷阱题</strong>与<strong>拒答题</strong>，带标注答案与禁用引用</li>
+          <li>分类别切片视图（定位问题集中在哪一类）</li>
+          <li>八分类归因引擎 + 优化动作映射</li>
+          <li>发布门禁与回归测试机制</li>
+        </ul></div></div>
+      <div class="phase-row"><div class="lbl">产出物</div><div class="val">
+        <span class="k">metrics.py</span> <span class="k">run_eval.py</span> <span class="k">diagnose.py</span>
+        <span class="k">golden_set.json</span> <span class="k">评测报告 + 归因报告 + 迭代记录</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">验收门槛</div><div class="val">
+        <span class="gate">黄金集门禁全通过 · 至少 3 轮完整迭代记录 · 每次改动后重跑评测不劣化</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">主要风险</div><div class="val">
+        <span class="risk">评测集本身不可信（建立在未核验数据上）；指标定义有缺陷，把系统缺陷洗成正常值</span>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-hd"><span class="phase-id">P4</span><h3>产品化与线上观测</h3><span class="phase-dur">1 周</span></div>
+    <div class="phase-bd">
+      <div class="phase-row"><div class="lbl">关键模块</div><div class="val">
+        <ul>
+          <li>问答 Web 界面：引用可点击溯源、条件提示、时效性醒目告警</li>
+          <li>用户反馈采集（点踩 / 追问 / 无结果）</li>
+          <li>线上埋点：覆盖未答、召回为空、工具失败、时效性告警命中四类事件</li>
+          <li>数据回流管道：线上 bad case 自动进入待标注队列 → 扩充评测集</li>
+          <li>线上指标看板</li>
+        </ul></div></div>
+      <div class="phase-row"><div class="lbl">产出物</div><div class="val">
+        <span class="k">可访问的在线 Demo</span> <span class="k">线上指标看板</span>
+        <span class="k">回流后的评测集 v2</span> <span class="k">真实用户使用数据</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">验收门槛</div><div class="val">
+        <span class="gate">累计 ≥100 次真实问答 · 人工抽检通过率 ≥85% · 线上 bad case 回流闭环打通</span>
+      </div></div>
+      <div class="phase-row"><div class="lbl">主要风险</div><div class="val">
+        <span class="risk">没有真实用户则拿不到线上数据 —— 可先在环境工程专业社群、环评从业者群内测，用真实从业者反馈替代规模数据</span>
+      </div></div>
+    </div>
+  </div>
+
+  <h3>关键路径与依赖</h3>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:200px">依赖关系</th><th>说明</th></tr>
+    <tr><td>P0 → P1 → P2</td><td>严格串行。没有结构化的限值表，工具层无从实现；没有检索层，编排层无法取证据</td></tr>
+    <tr><td>P3 与 P2 部分并行</td><td>黄金集可以在 P1 完成后就开始标注，不必等 P2 结束；但归因引擎依赖完整的工具调用日志</td></tr>
+    <tr><td>P4 依赖 P3</td><td>线上埋点的事件设计必须以评测指标的取数口径为准，否则线上数据无法回灌评测</td></tr>
+  </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">唯一不可压缩的瓶颈</span>
+    <p>如果这个项目要对外提供服务（而非仅作为个人项目），<strong>通管局备案需要 1–20 个工作日，且无法压缩</strong>。
+    它不占用开发人力，但决定了"能对外访问"的时间点。
+    建议在 P1 阶段就并行启动备案流程，不要等开发完再申请。</p>
+  </div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section>
+  <h2><span class="num">05</span>实测结果</h2>
+  <p class="sec-lede">以下数据来自本仓库实际运行四层评测脚本所得，非估算。评测集 24 题，覆盖 6 个类别。</p>
+
+  <h3>5.1 最终指标</h3>
+  <div class="grid g3">
+    <div class="card"><h4>时效性违规率</h4><p style="font-size:26px;font-weight:700;color:var(--teal);line-height:1.2">0.0%</p><p style="margin-top:6px">一票否决指标，全部达标</p></div>
+    <div class="card"><h4>数值准确率</h4><p style="font-size:26px;font-weight:700;color:var(--teal);line-height:1.2">100%</p><p style="margin-top:6px">门禁 ≥90%</p></div>
+    <div class="card"><h4>要点覆盖率</h4><p style="font-size:26px;font-weight:700;color:var(--teal);line-height:1.2">100%</p><p style="margin-top:6px">适用条件无遗漏</p></div>
+    <div class="card"><h4>引用精度</h4><p style="font-size:26px;font-weight:700;color:var(--teal);line-height:1.2">97.6%</p><p style="margin-top:6px">门禁 ≥90%</p></div>
+    <div class="card"><h4>工具选择准确率</h4><p style="font-size:26px;font-weight:700;color:var(--teal);line-height:1.2">95.8%</p><p style="margin-top:6px">门禁 ≥90%</p></div>
+    <div class="card"><h4>拒答正确率</h4><p style="font-size:26px;font-weight:700;color:var(--teal);line-height:1.2">100%</p><p style="margin-top:6px">门禁 ≥80%</p></div>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>层级</th><th>指标</th><th style="width:110px">实测</th><th style="width:110px">门槛</th><th style="width:80px">判定</th></tr>
+    <tr><td>L1 检索</td><td>Recall@5</td><td class="num-col">0.895</td><td class="num-col">≥0.85</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L1 检索</td><td>MRR</td><td class="num-col">0.833</td><td class="num-col">≥0.70</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L1 检索</td><td>nDCG@10</td><td class="num-col">0.843</td><td class="num-col">—</td><td>—</td></tr>
+    <tr><td>L2 生成</td><td>数值准确率</td><td class="num-col">1.000</td><td class="num-col">≥0.90</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L2 生成</td><td>要点覆盖率</td><td class="num-col">1.000</td><td class="num-col">—</td><td>—</td></tr>
+    <tr><td>L2 生成</td><td>结论一致率</td><td class="num-col">1.000</td><td class="num-col">≥0.95</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L2 生成</td><td>引用精度</td><td class="num-col">0.976</td><td class="num-col">≥0.90</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L2 生成</td><td>引用召回</td><td class="num-col">0.952</td><td class="num-col">—</td><td>—</td></tr>
+    <tr><td>L3 工具</td><td>选择准确率</td><td class="num-col">0.958</td><td class="num-col">≥0.90</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L3 工具</td><td>调用成功率</td><td class="num-col">0.958</td><td class="num-col">—</td><td>—</td></tr>
+    <tr><td>L3 工具</td><td>调用效率</td><td class="num-col">1.000</td><td class="num-col">—</td><td>—</td></tr>
+    <tr><td>L4 端到端</td><td><strong>时效性违规率</strong></td><td class="num-col" style="font-weight:700">0.000</td><td class="num-col" style="color:var(--red)">= 0</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td>L4 端到端</td><td>拒答正确率</td><td class="num-col">1.000</td><td class="num-col">≥0.80</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+  </table>
+  </div>
+  <p style="font-size:13.5px;color:var(--ink-3)">
+  L3 调用成功率 0.958 的缺口来自 <code>check_standard_status</code> 的模糊匹配路径（用户只写 <code>GB 18597</code> 不带年份时返回多版本候选），属于设计内的正常分支，非缺陷。
+  </p>
+  <div class="note">
+    <span class="tag red">一处指标下降，未做修复</span>
+    <p><strong>MRR 0.833 低于迭代 6 的 0.868，降幅全部来自 Q004 一题</strong>（1.000 → 0.333）。
+    分解后：期望条文 <code>GB 3095-2012#4.1</code> 自身的 BM25 与向量名次<strong>一名未动</strong>，
+    是竞争者（同属 <code>GB 3095-2012</code> 的限值行）在向量通道上升了 3 位；该题最终答案也
+    完全未变。可以加一个"版本"触发词把它顶回第一，但用 0.10 的加成去翻转 0.007 的差距，
+    是在对齐标注而非修缺陷。下降被如实记录。</p>
+  </div>
+
+  <h3>5.2 闭环迭代证据</h3>
+  <p>七次迭代，每次都由指标或明确缺陷驱动。完整记录见 <code>docs/迭代记录.md</code>。</p>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:60px">迭代</th><th style="width:290px">触发指标与主要动作</th><th style="width:100px">时效违规 ↓</th><th style="width:100px">引用精度</th><th style="width:100px">数值准确率</th><th style="width:80px">门禁</th></tr>
+    <tr><td class="num-col">1</td><td>等级前缀误匹配 → 正则有序候选；字段命名不一致 → 统一</td><td class="num-col">8.3%</td><td class="num-col">0.714</td><td class="num-col">1.000</td><td style="color:var(--red);font-weight:600">未通过</td></tr>
+    <tr><td class="num-col">2</td><td>引用收敛三段式；<strong>废止标准条文硬过滤</strong></td><td class="num-col">0.0%</td><td class="num-col">0.781</td><td class="num-col">0.929</td><td style="color:var(--red);font-weight:600">未通过</td></tr>
+    <tr><td class="num-col">3</td><td>新增行业槽位；裁决纳入行业匹配维度</td><td class="num-col">0.0%</td><td class="num-col">0.802</td><td class="num-col">1.000</td><td style="color:var(--red);font-weight:600">未通过</td></tr>
+    <tr><td class="num-col">4</td><td>等级贯通裁决工具；拒答引用精度改记 N/A</td><td class="num-col">0.0%</td><td class="num-col">0.952</td><td class="num-col">0.964</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td class="num-col">5</td><td>对比意图识别 + 查询分解（修复迭代 4 引入的误判）</td><td class="num-col">0.0%</td><td class="num-col">0.952</td><td class="num-col" style="font-weight:700">1.000</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td class="num-col">6</td><td>新增<strong>结论一致率</strong>指标；受纳水体→排放等级映射；时期槽位；修复 3/7 条门禁从未生效</td><td class="num-col">0.0%</td><td class="num-col">0.952</td><td class="num-col">1.000</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+    <tr><td class="num-col">7</td><td>分词保护模式全线失配（7 层同源缺陷）；<strong>向量通道补 IDF</strong>；罗马数字归一化；两条召回先验</td><td class="num-col">0.0%</td><td class="num-col" style="font-weight:700">0.976</td><td class="num-col">1.000</td><td style="color:var(--teal);font-weight:600">通过</td></tr>
+  </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">迭代 2 是本项目最重要的一次修复</span>
+    <p>最初的实现把失效标准做成"顶部提示"，但<strong>条文原文仍然进入了引用列表</strong>。
+    提示与引用并存，用户复制走的依然是一段已废止的条文。
+    加上硬过滤后，时效性违规率从 8.3% 直接归零。
+    教训：时效性问题靠提示语拦不住，必须在数据结构层面拦截。</p>
+  </div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section>
+  <h2><span class="num">06</span>边界与风险</h2>
+  <p class="sec-lede">明确说清楚这个系统不做什么、以及哪些结论必须回到官方文本核对。</p>
+
+  <h3>系统边界</h3>
+  <div class="grid g2">
+    <div class="card">
+      <h4>不做的事</h4>
+      <p style="color:var(--ink-2)">
+      · 不替代环评报告编制等专业产出<br>
+      · 不给出执法级判定结论（需考虑监测方法、采样频次、数据有效性规定）<br>
+      · 不提供超出知识库范围的推测性回答 —— 证据不足即拒答<br>
+      · 不做跨省份地方标准的穷尽覆盖（按需增量接入）
+      </p>
+    </div>
+    <div class="card">
+      <h4>必须回到官方文本的场景</h4>
+      <p style="color:var(--ink-2)">
+      · 环评类别判定（直接决定合规成本与审批流程）<br>
+      · 达标判定用于正式用途时<br>
+      · 任何涉及行政处罚、诉讼、验收的场景<br>
+      · 地方标准与国家标准冲突且地标未收录时
+      </p>
+    </div>
+  </div>
+
+  <h3>已识别的风险与应对</h3>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th style="width:180px">风险</th><th style="width:90px">等级</th><th>应对</th></tr>
+    <tr><td>数据未逐条核验</td><td style="color:var(--red);font-weight:600">高</td><td>schema 层强制 <code>verified</code> 标记；未核验数据在评测中单独统计；生产环境必须重新灌入官方文本</td></tr>
+    <tr><td>评测集代表性不足</td><td style="color:var(--red);font-weight:600">高</td><td>24 题仅够验证管线，生产需扩至 200+ 题；P4 阶段用线上真实 bad case 回流扩充</td></tr>
+    <tr><td>标准更新导致知识库滞后</td><td style="color:var(--amber);font-weight:600">中</td><td>定期巡检官方标准库更新公告；替代链变更触发回归评测</td></tr>
+    <tr><td>解析规则随 PDF 版式变化失效</td><td style="color:var(--amber);font-weight:600">中</td><td>适配器按机构隔离，单点失效不影响其他数据源；入库时做结构校验</td></tr>
+    <tr><td>离线规划器覆盖面有限</td><td style="color:var(--amber);font-weight:600">中</td><td>规则规划器建立可复现基线，接入 LLM 规划器后做 A/B 对比，不达标不上线</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section>
+  <h2><span class="num">07</span>代码结构</h2>
+  <p class="sec-lede">本仓库已实现完整可运行骨架，零外部依赖即可跑通全链路。</p>
+
+  <div class="tree"><b>环保规范检索Agent/</b>
+├── README.md                     快速开始与接入说明
+├── requirements.txt
+├── <i>docs/</i>
+│   ├── 方案主文档.html            本文件
+│   └── 迭代记录.md                闭环迭代证据
+├── <i>data/</i>
+│   ├── standards_seed.json        知识库种子（标准 / 条文 / 限值 / 替代链）
+│   └── golden_set.json            黄金评测集（24 题，含陷阱题与拒答题）
+├── <i>src/</i>
+│   ├── config.py                  模型接入 · 检索参数 · 发布门禁阈值
+│   ├── <i>kb/</i>
+│   │   ├── schema.py              三层数据模型与校验
+│   │   ├── parser.py              条文级切分 + 元数据抽取 + 引用图
+│   │   └── build_kb.py            索引构建
+│   ├── <i>retrieval/</i>
+│   │   ├── tokenizer.py           领域分词（jieba 可选，带降级）
+│   │   ├── bm25.py                稀疏检索
+│   │   ├── vector.py              稠密检索（可切 API）
+│   │   └── hybrid.py              查询理解 · RRF 融合 · 时效性重排
+│   ├── <i>tools/</i>
+│   │   └── registry.py            8 个工具的实现与声明
+│   ├── <i>agent/</i>
+│   │   └── loop.py                双模规划器 · 证据聚合 · 引用生成 · 拒答
+│   ├── demo_cli.py                命令行演示记录生成（显式 UTF-8 写文件）
+│   ├── <i>eval/</i>
+│   │   ├── metrics.py             四层 15 项指标 + 门禁判定
+│   │   ├── run_eval.py            评测执行
+│   │   └── diagnose.py            八分类归因与优化动作映射
+│   └── <i>api/</i>
+│       └── server.py              前端 Demo 后端接口（纯标准库）
+├── <i>web/</i>
+│   ├── template.html              前端源码模板（可读的源文件）
+│   ├── build_web.py               构建脚本：注入数据 → 产出单文件
+│   └── index.html                 构建产物：自包含单文件，双击即可打开
+├── <i>tests/</i>
+│   ├── parity_check.py            双引擎一致性校验（JS 内置引擎 vs Python 后端）
+│   ├── engine_parity.js           Node 侧执行器
+│   └── ui_smoke.js                前端渲染冒烟测试
+└── <i>out/</i>
+    ├── eval_report.json/.txt      逐题明细 + 分类别切片
+    ├── diagnosis.json/.txt        归因 + 下轮修复清单
+    └── demo.txt                   四类场景的命令行演示记录</div>
+
+  <h3>运行方式</h3>
+  <pre><span class="c"># 建索引</span>
+python -m src.kb.build_kb
+
+<span class="c"># 单次问答（离线规则规划器，零 API 成本）</span>
+python -m src.agent.loop <span class="s">"浙江省的城镇污水处理厂COD执行什么排放限值"</span>
+
+<span class="c"># 全量评测 + 归因</span>
+python -m src.eval.run_eval
+python -m src.eval.diagnose</pre>
+
+  <p>接入真实模型只需在 <code>src/config.py</code> 中配置 <code>LLM_PROVIDER</code> 与
+  <code>EMBED_PROVIDER</code>，其余逻辑不变。<strong>离线模式的存在是刻意设计</strong>——
+  它让评测闭环在没有 API 预算时也能运转，同时提供一个确定性的对照基线，
+  用于判断接入 LLM 后究竟是变好还是变差。</p>
+
+  <h3>示例输出</h3>
+  <pre>Q: 浙江省的城镇污水处理厂COD执行什么排放限值
+
+- 适用优先级裁决：应适用 城镇污水处理厂主要水污染物排放标准
+  （DB33/ 2169-2018）浙江地标，限值 30 mg/L [1]。
+  理由：该标准为现行有效版本；浙江省地方标准在本行政区域内优先适用；
+        该标准适用对象「城镇污水处理厂」，与问题场景一致。
+- DB33/ 2169-2018 表1 规定，浙江地标标准下限值为 30 mg/L
+  （适用条件：城镇污水处理厂，常规时段） [2]
+
+**依据**
+[1] DB33/ 2169-2018  ，浙江地标
+[2] DB33/ 2169-2018 表1 ，浙江地标</pre>
+</section>
+
+<div class="foot">
+  <div class="kv"><span class="kk">评测集</span><span class="vv">24 题 / 6 类（限值直查 · 时效性陷阱 · 适用优先级 · 环评类别 · 拒答 · 多条件约束）</span></div>
+  <div class="kv"><span class="kk">指标</span><span class="vv">四层 15 项，数值与时效性类全部为确定性判定</span></div>
+  <div class="kv"><span class="kk">门禁</span><span class="vv">7 项，其中时效性违规率为一票否决</span></div>
+  <div class="kv"><span class="kk">数据状态</span><span class="vv">演示数据（<code>verified: false</code>），生产环境需从官方源重新灌入</span></div>
+</div>
+
+</div>
+</body>
+</html>

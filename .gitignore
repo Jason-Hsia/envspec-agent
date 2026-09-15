@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 构建/测试的中间产物
+out/_js_parity.json
+*.log
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+
+# 注意：out/kb_index/ 与 out/eval_report.* 、out/diagnosis.* 是**要提交的** ——
+# 前端单文件（web/index.html）在构建时需要把索引与评测报告注入进去，
+# 仓库里没有这些文件，别人 clone 下来就跑不出 Demo。
+# 但 data/*.json 里带 verified:false 的演示数值不要对外声称已核验。

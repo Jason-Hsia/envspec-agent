@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>环保规范检索 Agent · RAG + Tool Use 评测闭环</title>
+<style>
+:root{
+  --bg:#f4f6f8; --surface:#ffffff; --surface-2:#fafbfc; --surface-3:#f2f4f7;
+  --border:#e4e7ec; --border-2:#d6dbe3;
+  --text:#15181c; --text-2:#4b5565; --text-3:#8b95a6;
+  --accent:#0b63ce; --accent-2:#0a56b3; --accent-soft:#eaf2fd;
+  --ok:#0f8a4d; --ok-soft:#e6f6ed;
+  --warn:#b54708; --warn-soft:#fdf4e9;
+  --danger:#c02634; --danger-soft:#fdecee;
+  --purple:#6941c6; --purple-soft:#f3effd;
+  --teal:#0e7490; --teal-soft:#e6f6f9;
+  --r:10px; --r-sm:7px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+code,pre,.mono{font-family:var(--mono)}
+
+/* ---------- 顶栏 ---------- */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--border)}
+.topbar-in{max-width:1460px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#0b63ce,#0e7490);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;flex:none}
+.brand h1{font-size:15.5px;margin:0;letter-spacing:-.2px;white-space:nowrap}
+.brand p{margin:0;font-size:11.5px;color:var(--text-3);white-space:nowrap}
+.spacer{flex:1}
+.badges{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:3px;background:var(--surface-3);padding:3px;border-radius:9px}
+.tabs button{border:0;background:transparent;font-family:inherit;font-size:13px;color:var(--text-2);padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:500;white-space:nowrap}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(16,24,40,.09)}
+
+/* ---------- 通用件 ---------- */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-warn{background:var(--warn-soft);color:var(--warn)}
+.b-danger{background:var(--danger-soft);color:var(--danger)}
+.b-info{background:var(--accent-soft);color:var(--accent-2)}
+.b-neutral{background:var(--surface-3);color:var(--text-2)}
+.b-purple{background:var(--purple-soft);color:var(--purple)}
+.b-teal{background:var(--teal-soft);color:var(--teal)}
+.b-outline{background:transparent;border-color:var(--border-2);color:var(--text-2)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.card-h{display:flex;align-items:center;gap:9px;padding:11px 15px;border-bottom:1px solid var(--border)}
+.card-h h3{margin:0;font-size:13px;font-weight:650;letter-spacing:-.1px}
+.card-b{padding:15px}
+.card-h .step{width:19px;height:19px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-size:11px;font-weight:700;display:grid;place-items:center;flex:none}
+.muted{color:var(--text-3)}
+.small{font-size:12px}
+.tiny{font-size:11px}
+.hidden{display:none !important}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px}
+.kv dt{color:var(--text-3)}
+.kv dd{margin:0;word-break:break-word}
+.scroll{overflow:auto}
+.scroll::-webkit-scrollbar{width:9px;height:9px}
+.scroll::-webkit-scrollbar-thumb{background:#cfd6e0;border-radius:9px;border:2px solid transparent;background-clip:padding-box}
+.scroll::-webkit-scrollbar-thumb:hover{background:#b5bfcd;background-clip:padding-box}
+
+/* ---------- 主区 ---------- */
+main{max-width:1460px;margin:0 auto;padding:20px 22px 60px}
+.panel{display:none}
+.panel.on{display:block}
+
+/* ---------- 问答台 ---------- */
+.ask-grid{display:grid;grid-template-columns:322px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:1080px){.ask-grid{grid-template-columns:1fr}}
+.side{position:sticky;top:78px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 96px);overflow:auto;padding-right:2px}
+@media(max-width:1080px){.side{position:static;max-height:none}}
+.qbox{display:flex;gap:8px}
+.qbox input{flex:1;min-width:0;border:1px solid var(--border-2);border-radius:var(--r-sm);padding:9px 11px;font-family:inherit;font-size:13.5px;color:var(--text);background:var(--surface)}
+.qbox input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.btn{border:1px solid var(--accent);background:var(--accent);color:#fff;font-family:inherit;font-size:13px;font-weight:600;padding:9px 15px;border-radius:var(--r-sm);cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--accent-2)}
+.btn.ghost{background:var(--surface);color:var(--text-2);border-color:var(--border-2)}
+.btn.ghost:hover{background:var(--surface-3);color:var(--text)}
+.btn.sm{padding:4px 9px;font-size:11.5px}
+.cat-group{margin-bottom:12px}
+.cat-group:last-child{margin-bottom:0}
+.cat-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.qitem{display:block;width:100%;text-align:left;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-sm);padding:7px 10px;margin-bottom:5px;font-family:inherit;font-size:12.5px;color:var(--text-2);cursor:pointer;line-height:1.45}
+.qitem:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.qitem .qid{font-family:var(--mono);font-size:10.5px;color:var(--text-3);margin-right:5px}
+
+/* 结果区 */
+.result{display:flex;flex-direction:column;gap:14px}
+.answer{white-space:pre-wrap;word-break:break-word;font-size:13.5px;line-height:1.75}
+.answer strong{font-weight:650;color:var(--text)}
+.answer em{color:var(--text-3);font-style:normal;font-size:12.5px}
+.cite{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--accent-2);background:var(--accent-soft);border-radius:4px;padding:0 4px;margin:0 1px;cursor:pointer;vertical-align:1px;border:1px solid transparent}
+.cite:hover{border-color:var(--accent)}
+.cite.on{background:var(--accent);color:#fff}
+.refuse{background:var(--warn-soft);border:1px solid #f2d9b8;border-radius:var(--r-sm);padding:12px 14px;font-size:13px;color:#7a3d06;line-height:1.7}
+.stale-banner{background:var(--danger-soft);border:1px solid #f5c6cb;border-radius:var(--r-sm);padding:12px 14px}
+.stale-banner h4{margin:0 0 5px;font-size:12.5px;color:var(--danger);display:flex;align-items:center;gap:6px}
+.stale-banner ul{margin:0;padding-left:18px;font-size:12.5px;color:#8a1c27}
+
+/* 槽位 */
+.slots{display:flex;flex-wrap:wrap;gap:6px}
+.slot{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);background:var(--surface-2);border-radius:6px;padding:3px 8px;font-size:12px}
+.slot .k{color:var(--text-3);font-size:11px}
+.slot .v{font-weight:600;font-family:var(--mono);font-size:11.5px;color:var(--accent-2)}
+.slot.empty{opacity:.5}
+
+/* 工具时间线 */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:1.5px;background:var(--border-2)}
+.tl-item{position:relative;margin-bottom:11px}
+.tl-item:last-child{margin-bottom:0}
+.tl-item::before{content:"";position:absolute;left:-19px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);z-index:1}
+.tl-item.err::before{border-color:var(--danger)}
+.tl-item.stale::before{border-color:var(--warn)}
+.tl-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
+.tl-name{font-family:var(--mono);font-size:12.5px;font-weight:650;color:var(--text)}
+.tl-args{font-family:var(--mono);font-size:11.5px;color:var(--text-3);word-break:break-all}
+.tl-out{font-size:12.5px;color:var(--text-2);margin-top:3px}
+.tl-out b{color:var(--text);font-weight:600}
+details.raw{margin-top:5px}
+details.raw>summary{font-size:11.5px;color:var(--text-3);cursor:pointer;list-style:none;user-select:none}
+details.raw>summary::-webkit-details-marker{display:none}
+details.raw>summary::before{content:"▸ ";font-size:10px}
+details.raw[open]>summary::before{content:"▾ "}
+details.raw pre{margin:6px 0 0;background:var(--surface-3);border:1px solid var(--border);border-radius:6px;padding:9px 11px;font-size:11.5px;line-height:1.6;overflow:auto;max-height:320px;color:var(--text-2)}
+
+/* 引用 */
+.cit-list{display:flex;flex-direction:column;gap:9px}
+.cit{border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;background:var(--surface-2);cursor:pointer;transition:border-color .12s}
+.cit:hover{border-color:var(--border-2)}
+.cit.on{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px rgba(11,99,206,.07)}
+.cit-h{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.cit-idx{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;flex:none}
+.cit-std{font-family:var(--mono);font-size:12px;font-weight:650}
+.cit-txt{font-size:12.5px;color:var(--text-2);line-height:1.65;margin-top:5px;border-left:2px solid var(--border-2);padding-left:10px}
+.cit-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text-3);margin-top:7px;font-family:var(--mono)}
+
+/* 拦截清单 */
+.intercept{border:1px dashed #f0b4bb;background:#fff8f8;border-radius:var(--r-sm);padding:11px 13px}
+.intercept .it{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:4px 0}
+.intercept .it+.it{border-top:1px dashed #f5d8dc;margin-top:3px;padding-top:6px}
+.intercept .x{color:var(--danger);font-weight:700;flex:none}
+
+/* ---------- 评测面板 ---------- */
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.layer-h{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.layer-h .ln{font-family:var(--mono);font-size:11px;font-weight:700;background:var(--text);color:#fff;border-radius:4px;padding:2px 6px}
+.layer-h h3{margin:0;font-size:13.5px;font-weight:650}
+.metric{padding:9px 0;border-top:1px solid var(--border)}
+.metric:first-of-type{border-top:0;padding-top:0}
+.metric-h{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.metric-n{font-size:12.5px;color:var(--text-2);flex:1}
+.metric-v{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:-.4px}
+.metric-g{font-family:var(--mono);font-size:10.5px;color:var(--text-3)}
+.bar{height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;border-radius:3px}
+.bar .gate{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text-3);opacity:.45}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text-3);margin-top:11px}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:10px;height:3px;border-radius:2px;display:block}
+
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+table.tbl th{text-align:left;font-weight:600;color:var(--text-3);font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:8px 10px;border-bottom:1px solid var(--border-2);white-space:nowrap;background:var(--surface-2)}
+table.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+table.tbl tr:last-child td{border-bottom:0}
+table.tbl tbody tr:hover{background:var(--surface-2)}
+table.tbl td.num{font-family:var(--mono);font-size:11.5px;text-align:right;white-space:nowrap}
+table.tbl td.q{max-width:420px}
+.rowbtn{border:1px solid var(--border-2);background:var(--surface);border-radius:5px;font-family:inherit;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--text-2)}
+.rowbtn:hover{border-color:var(--accent);color:var(--accent-2)}
+
+/* ---------- 知识库 ---------- */
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.stat .n{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:-.8px;line-height:1.2}
+.stat .l{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.chipset{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--mono);font-size:11px;background:var(--surface-3);border:1px solid var(--border);border-radius:5px;padding:2px 7px;color:var(--text-2)}
+
+/* ---------- 架构 ---------- */
+.arch{display:flex;flex-direction:column;gap:9px}
+.layer{border:1px solid var(--border);border-radius:var(--r);background:var(--surface);padding:12px 14px;position:relative}
+.layer-top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.layer-top .ln{font-family:var(--mono);font-size:10.5px;font-weight:700;border-radius:4px;padding:2px 6px;color:#fff}
+.layer-top h4{margin:0;font-size:13px;font-weight:650}
+.layer-top .desc{font-size:11.5px;color:var(--text-3)}
+.mods{display:flex;flex-wrap:wrap;gap:6px}
+.mod{border:1px solid var(--border);background:var(--surface-2);border-radius:6px;padding:5px 9px;font-size:12px;color:var(--text-2)}
+.mod b{font-weight:650;color:var(--text);font-family:var(--mono);font-size:11.5px}
+.arrow{text-align:center;color:var(--text-3);font-size:13px;line-height:1;margin:-3px 0}
+.decision{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:14px}
+.decision .d{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--r-sm);padding:11px 13px;background:var(--surface)}
+.decision .d h5{margin:0 0 5px;font-size:12.5px;font-weight:650}
+.decision .d p{margin:0;font-size:12.5px;color:var(--text-2);line-height:1.65}
+
+/* 达标计算器 */
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:9px;align-items:end}
+.calc label{display:block;font-size:11.5px;color:var(--text-3);margin-bottom:3px}
+.calc input,.calc select{width:100%;border:1px solid var(--border-2);border-radius:6px;padding:6px 8px;font-family:inherit;font-size:12.5px;background:var(--surface);color:var(--text)}
+.calc input:focus,.calc select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.calc-out{margin-top:11px;font-size:13px}
+.calc-out .verdict{font-size:16px;font-weight:700;font-family:var(--mono)}
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px}
+.hero h2{margin:0 0 6px;font-size:15px;letter-spacing:-.2px}
+.hero p{margin:0;font-size:12.5px;color:var(--text-2);line-height:1.7}
+.empty-state{text-align:center;padding:52px 20px;color:var(--text-3)}
+.empty-state .ic{font-size:26px;opacity:.35;margin-bottom:10px}
+.footnote{font-size:11.5px;color:var(--text-3);line-height:1.7;border-top:1px solid var(--border);padding-top:11px;margin-top:14px}
+.warn-note{background:var(--warn-soft);border:1px solid #f2d9b8;color:#7a3d06;border-radius:var(--r-sm);padding:10px 12px;font-size:12.5px;line-height:1.7}
+.spin{width:13px;height:13px;border:2px solid var(--border-2);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <div class="logo">环</div>
+      <div>
+        <h1>环保规范检索 Agent</h1>
+        <p>RAG + Tool Use · 四层评测闭环 · 时效性一票否决</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="badges">
+      <span class="badge b-neutral" id="engineBadge"><span class="dot"></span>引擎检测中</span>
+      <span class="badge b-info" id="gateBadge">门禁 —</span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="ask" class="on">问答台</button>
+      <button data-tab="eval">评测仪表盘</button>
+      <button data-tab="kb">知识库</button>
+      <button data-tab="arch">架构与决策</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ================= 问答台 ================= -->
+  <section class="panel on" id="panel-ask">
+    <div class="ask-grid">
+      <aside class="side">
+        <div class="card">
+          <div class="card-h"><h3>提问</h3></div>
+          <div class="card-b">
+            <div class="qbox">
+              <input id="qInput" placeholder="例如：地表水III类COD限值是多少" autocomplete="off">
+              <button class="btn" id="qRun">运行</button>
+            </div>
+            <div class="small muted" style="margin-top:9px;line-height:1.6">
+              回车即执行。下方为黄金评测集 24 题，点选可直接复现。
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h3>黄金评测集</h3><span class="badge b-neutral" id="goldenCount"></span></div>
+          <div class="card-b scroll" id="qlist" style="max-height:min(52vh,520px)"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h3>达标判定计算器</h3></div>
+          <div class="card-b">
+            <div class="small muted" style="margin-bottom:9px">直接调用 <span class="mono">judge_compliance</span>：自动做单位换算与超标倍数计算。</div>
+            <div class="calc">
+              <div><label>实测值</label><input id="cVal" type="number" step="any" value="135"></div>
+              <div><label>污染物</label>
+                <select id="cPol">
+                  <option value="COD">COD</option><option value="NH3-N">氨氮 NH3-N</option>
+                  <option value="TP">总磷 TP</option><option value="石油类">石油类</option>
+                  <option value="PM10">PM10</option><option value="SO2">SO2</option>
+                  <option value="噪声">厂界噪声</option>
+                </select>
+              </div>
+              <div><label>介质</label>
+                <select id="cMed">
+                  <option value="water_wastewater">废水</option><option value="water_surface">地表水</option>
+                  <option value="air_ambient">环境空气</option><option value="noise">噪声</option>
+                </select>
+              </div>
+              <div><label>等级</label>
+                <select id="cGrade">
+                  <option value="">不限</option>
+                  <option value="一级">一级</option><option value="二级">二级</option><option value="三级">三级</option>
+                  <option value="Ⅲ">Ⅲ类</option><option value="Ⅳ">Ⅳ类</option><option value="Ⅴ">Ⅴ类</option>
+                  <option value="2类">2类</option><option value="3类">3类</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:9px"><button class="btn ghost sm" id="cRun">执行判定</button></div>
+            <div class="calc-out" id="cOut"></div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="result" id="result">
+        <div class="hero">
+          <h2>带评测闭环的垂直领域问答</h2>
+          <p>环保标准问答有两道别的领域不会同时遇到的硬约束：<strong>标准会失效</strong>（被替代的旧版仍留在语料里，且措辞往往更贴合提问词）、<strong>限值附条件</strong>（同一污染物按地表水 Ⅰ–Ⅴ 类 / 废水一级至三级 / 河流与湖库 / 常规与冬季时段全部不同）。这两条恰好是 Tool Use 不可替代的理由——时效性只能查状态表，限值只能查结构化表，都是确定性操作。</p>
+          <p style="margin-top:8px">左侧选一题，或直接输入你的问题，右侧会逐步展开 <strong>查询理解 → 工具调用 → 证据收敛 → 带引用作答</strong> 的完整过程，包括系统<strong>拒绝引用</strong>了哪些失效条文。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 评测仪表盘 ================= -->
+  <section class="panel" id="panel-eval">
+    <div id="evalBody"></div>
+  </section>
+
+  <!-- ================= 知识库 ================= -->
+  <section class="panel" id="panel-kb">
+    <div id="kbBody"></div>
+  </section>
+
+  <!-- ================= 架构 ================= -->
+  <section class="panel" id="panel-arch">
+    <div id="archBody"></div>
+  </section>
+
+</main>
+
+<script>
+window.__ENVSPEC_DATA__ = {"generated_at":"2026-09-14","index":{"clauses":[{"clause_id":"GB 3838-2002#4.1","std_id":"GB 3838-2002","clause_no":"4.1","path":["第4章 水域功能和标准分类","4.1 水域功能分类"],"clause_type":"definition","text":"依据地表水水域环境功能和保护目标，按功能高低依次划分为五类：Ⅰ类主要适用于源头水、国家自然保护区；Ⅱ类主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等；Ⅲ类主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、洄游通道、水产养殖区等渔业水域及游泳区；Ⅳ类主要适用于一般工业用水区及人体非直接接触的娱乐用水区；Ⅴ类主要适用于农业用水区及一般景观要求水域。","searchable_text":"GB 3838-2002 4.1 第4章 水域功能和标准分类 4.1 水域功能分类 依据地表水水域环境功能和保护目标，按功能高低依次划分为五类：Ⅰ类主要适用于源头水、国家自然保护区；Ⅱ类主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等；Ⅲ类主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、洄游通道、水产养殖区等渔业水域及游泳区；Ⅳ类主要适用于一般工业用水区及人体非直接接触的娱乐用水区；Ⅴ类主要适用于农业用水区及一般景观要求水域。","refs":[],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"地表水环境质量标准","std_effective_date":"2002-06-01","std_replaced_by":[],"medium":["water_surface"],"region":["全国"],"verified":false},{"clause_id":"GB 3838-2002#4.2","std_id":"GB 3838-2002","clause_no":"4.2","path":["第4章 水域功能和标准分类","4.2 标准值适用原则"],"clause_type":"management","text":"同一水域兼有多类使用功能的，执行最高功能类别对应的标准值。实现水域功能与达功能类别标准为同一含义。","searchable_text":"GB 3838-2002 4.2 第4章 水域功能和标准分类 4.2 标准值适用原则 同一水域兼有多类使用功能的，执行最高功能类别对应的标准值。实现水域功能与达功能类别标准为同一含义。","refs":[],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"地表水环境质量标准","std_effective_date":"2002-06-01","std_replaced_by":[],"medium":["water_surface"],"region":["全国"],"verified":false},{"clause_id":"GB 3838-2002#表1-序号3","std_id":"GB 3838-2002","clause_no":"表1-序号3","path":["第4章 水域功能和标准分类","表1 地表水环境质量标准基本项目标准限值"],"clause_type":"limit","text":"化学需氧量（COD），单位 mg/L。Ⅰ类 15，Ⅱ类 15，Ⅲ类 20，Ⅳ类 30，Ⅴ类 40。","searchable_text":"GB 3838-2002 表1-序号3 第4章 水域功能和标准分类 表1 地表水环境质量标准基本项目标准限值 化学需氧量（COD），单位 mg/L。Ⅰ类 15，Ⅱ类 15，Ⅲ类 20，Ⅳ类 30，Ⅴ类 40。","refs":[],"limit_ref":"GB 3838-2002/T1/COD","std_status":"active","std_level":"national","std_title":"地表水环境质量标准","std_effective_date":"2002-06-01","std_replaced_by":[],"medium":["water_surface"],"region":["全国"],"verified":false},{"clause_id":"GB 3838-2002#表1-序号5","std_id":"GB 3838-2002","clause_no":"表1-序号5","path":["第4章 水域功能和标准分类","表1 地表水环境质量标准基本项目标准限值"],"clause_type":"limit","text":"氨氮（NH3-N，以N计），单位 mg/L。Ⅰ类 0.15，Ⅱ类 0.5，Ⅲ类 1.0，Ⅳ类 1.5，Ⅴ类 2.0。","searchable_text":"GB 3838-2002 表1-序号5 第4章 水域功能和标准分类 表1 地表水环境质量标准基本项目标准限值 氨氮（NH3-N，以N计），单位 mg/L。Ⅰ类 0.15，Ⅱ类 0.5，Ⅲ类 1.0，Ⅳ类 1.5，Ⅴ类 2.0。","refs":[],"limit_ref":"GB 3838-2002/T1/NH3-N","std_status":"active","std_level":"national","std_title":"地表水环境质量标准","std_effective_date":"2002-06-01","std_replaced_by":[],"medium":["water_surface"],"region":["全国"],"verified":false},{"clause_id":"GB 3838-2002#表1-序号4","std_id":"GB 3838-2002","clause_no":"表1-序号4","path":["第4章 水域功能和标准分类","表1 地表水环境质量标准基本项目标准限值"],"clause_type":"limit","text":"总磷（以P计），单位 mg/L。河流：Ⅰ类 0.02，Ⅱ类 0.1，Ⅲ类 0.2，Ⅳ类 0.3，Ⅴ类 0.4；湖、库：Ⅰ类 0.01，Ⅱ类 0.025，Ⅲ类 0.05，Ⅳ类 0.1，Ⅴ类 0.2。","searchable_text":"GB 3838-2002 表1-序号4 第4章 水域功能和标准分类 表1 地表水环境质量标准基本项目标准限值 总磷（以P计），单位 mg/L。河流：Ⅰ类 0.02，Ⅱ类 0.1，Ⅲ类 0.2，Ⅳ类 0.3，Ⅴ类 0.4；湖、库：Ⅰ类 0.01，Ⅱ类 0.025，Ⅲ类 0.05，Ⅳ类 0.1，Ⅴ类 0.2。","refs":[],"limit_ref":"GB 3838-2002/T1/TP","std_status":"active","std_level":"national","std_title":"地表水环境质量标准","std_effective_date":"2002-06-01","std_replaced_by":[],"medium":["water_surface"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-2012#4.1","std_id":"GB 3095-2012","clause_no":"4.1","path":["第4章 环境空气功能区分类和质量要求","4.1 环境空气功能区分类"],"clause_type":"definition","text":"环境空气功能区分为二类：一类区为自然保护区、风景名胜区和其他需要特殊保护的区域；二类区为居住区、商业交通居民混合区、文化区、工业区和农村地区。一类区适用一级浓度限值，二类区适用二级浓度限值。","searchable_text":"GB 3095-2012 4.1 第4章 环境空气功能区分类和质量要求 4.1 环境空气功能区分类 环境空气功能区分为二类：一类区为自然保护区、风景名胜区和其他需要特殊保护的区域；二类区为居住区、商业交通居民混合区、文化区、工业区和农村地区。一类区适用一级浓度限值，二类区适用二级浓度限值。","refs":[],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"2016-01-01","std_replaced_by":[],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-2012#表1-PM10","std_id":"GB 3095-2012","clause_no":"表1-PM10","path":["第4章 环境空气功能区分类和质量要求","表1 环境空气污染物基本项目浓度限值"],"clause_type":"limit","text":"颗粒物（粒径小于等于10μm，PM10），单位 μg/m3。年平均：一级 40，二级 70；24小时平均：一级 50，二级 150。","searchable_text":"GB 3095-2012 表1-PM10 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 颗粒物（粒径小于等于10μm，PM10），单位 μg/m3。年平均：一级 40，二级 70；24小时平均：一级 50，二级 150。","refs":[],"limit_ref":"GB 3095-2012/T1/PM10","std_status":"active","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"2016-01-01","std_replaced_by":[],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-2012#表1-PM2.5","std_id":"GB 3095-2012","clause_no":"表1-PM2.5","path":["第4章 环境空气功能区分类和质量要求","表1 环境空气污染物基本项目浓度限值"],"clause_type":"limit","text":"颗粒物（粒径小于等于2.5μm，PM2.5），单位 μg/m3。年平均：一级 15，二级 35；24小时平均：一级 35，二级 75。","searchable_text":"GB 3095-2012 表1-PM2.5 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 颗粒物（粒径小于等于2.5μm，PM2.5），单位 μg/m3。年平均：一级 15，二级 35；24小时平均：一级 35，二级 75。","refs":[],"limit_ref":"GB 3095-2012/T1/PM2.5","std_status":"active","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"2016-01-01","std_replaced_by":[],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-2012#表1-SO2","std_id":"GB 3095-2012","clause_no":"表1-SO2","path":["第4章 环境空气功能区分类和质量要求","表1 环境空气污染物基本项目浓度限值"],"clause_type":"limit","text":"二氧化硫（SO2），单位 μg/m3。年平均：一级 20，二级 60；24小时平均：一级 50，二级 150；1小时平均：一级 150，二级 500。","searchable_text":"GB 3095-2012 表1-SO2 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 二氧化硫（SO2），单位 μg/m3。年平均：一级 20，二级 60；24小时平均：一级 50，二级 150；1小时平均：一级 150，二级 500。","refs":[],"limit_ref":"GB 3095-2012/T1/SO2","std_status":"active","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"2016-01-01","std_replaced_by":[],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-2012#表1-NO2","std_id":"GB 3095-2012","clause_no":"表1-NO2","path":["第4章 环境空气功能区分类和质量要求","表1 环境空气污染物基本项目浓度限值"],"clause_type":"limit","text":"二氧化氮（NO2），单位 μg/m3。年平均：一级 40，二级 40；24小时平均：一级 80，二级 80；1小时平均：一级 200，二级 200。","searchable_text":"GB 3095-2012 表1-NO2 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 二氧化氮（NO2），单位 μg/m3。年平均：一级 40，二级 40；24小时平均：一级 80，二级 80；1小时平均：一级 200，二级 200。","refs":[],"limit_ref":"GB 3095-2012/T1/NO2","std_status":"active","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"2016-01-01","std_replaced_by":[],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-2012#6.1","std_id":"GB 3095-2012","clause_no":"6.1","path":["第6章 数据统计的有效性规定","6.1"],"clause_type":"method","text":"年平均浓度由全年各日平均浓度值的算术平均值计算，一年中有效日均值数据有效率不低于75%。24小时平均浓度每日至少应有20个小时平均浓度值或采样时间。","searchable_text":"GB 3095-2012 6.1 第6章 数据统计的有效性规定 6.1 年平均浓度由全年各日平均浓度值的算术平均值计算，一年中有效日均值数据有效率不低于75%。24小时平均浓度每日至少应有20个小时平均浓度值或采样时间。","refs":[],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"2016-01-01","std_replaced_by":[],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 8978-1996#4.1","std_id":"GB 8978-1996","clause_no":"4.1","path":["第4章 技术内容","4.1 标准分级"],"clause_type":"management","text":"排入GB 3838-2002 Ⅲ类水域（划定的保护区和游泳区除外）和排入GB 3097-1997 中二类海域的污水，执行一级标准。排入GB 3838-2002 中Ⅳ、Ⅴ类水域和排入GB 3097-1997 中三类海域的污水，执行二级标准。排入设置二级污水处理厂的城镇排水系统的污水，执行三级标准。","searchable_text":"GB 8978-1996 4.1 第4章 技术内容 4.1 标准分级 排入GB 3838-2002 Ⅲ类水域（划定的保护区和游泳区除外）和排入GB 3097-1997 中二类海域的污水，执行一级标准。排入GB 3838-2002 中Ⅳ、Ⅴ类水域和排入GB 3097-1997 中三类海域的污水，执行二级标准。排入设置二级污水处理厂的城镇排水系统的污水，执行三级标准。","refs":["GB 3838-2002#4.1"],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"污水综合排放标准","std_effective_date":"1998-01-01","std_replaced_by":[],"medium":["water_wastewater"],"region":["全国"],"verified":false},{"clause_id":"GB 8978-1996#表2-COD","std_id":"GB 8978-1996","clause_no":"表2-COD","path":["第4章 技术内容","表2 第二类污染物最高允许排放浓度"],"clause_type":"limit","text":"化学需氧量（COD），单位 mg/L。一级标准 100，二级标准 150，三级标准 500。适用于1998年1月1日之后建设的单位。","searchable_text":"GB 8978-1996 表2-COD 第4章 技术内容 表2 第二类污染物最高允许排放浓度 化学需氧量（COD），单位 mg/L。一级标准 100，二级标准 150，三级标准 500。适用于1998年1月1日之后建设的单位。","refs":[],"limit_ref":"GB 8978-1996/T2/COD","std_status":"active","std_level":"national","std_title":"污水综合排放标准","std_effective_date":"1998-01-01","std_replaced_by":[],"medium":["water_wastewater"],"region":["全国"],"verified":false},{"clause_id":"GB 8978-1996#表2-NH3-N","std_id":"GB 8978-1996","clause_no":"表2-NH3-N","path":["第4章 技术内容","表2 第二类污染物最高允许排放浓度"],"clause_type":"limit","text":"氨氮（NH3-N），单位 mg/L。一级标准 15，二级标准 25，三级标准 不限。适用于1998年1月1日之后建设的单位。","searchable_text":"GB 8978-1996 表2-NH3-N 第4章 技术内容 表2 第二类污染物最高允许排放浓度 氨氮（NH3-N），单位 mg/L。一级标准 15，二级标准 25，三级标准 不限。适用于1998年1月1日之后建设的单位。","refs":[],"limit_ref":"GB 8978-1996/T2/NH3-N","std_status":"active","std_level":"national","std_title":"污水综合排放标准","std_effective_date":"1998-01-01","std_replaced_by":[],"medium":["water_wastewater"],"region":["全国"],"verified":false},{"clause_id":"GB 8978-1996#表2-石油类","std_id":"GB 8978-1996","clause_no":"表2-石油类","path":["第4章 技术内容","表2 第二类污染物最高允许排放浓度"],"clause_type":"limit","text":"石油类，单位 mg/L。一级标准 5.0，二级标准 10，三级标准 20。适用于1998年1月1日之后建设的单位。","searchable_text":"GB 8978-1996 表2-石油类 第4章 技术内容 表2 第二类污染物最高允许排放浓度 石油类，单位 mg/L。一级标准 5.0，二级标准 10，三级标准 20。适用于1998年1月1日之后建设的单位。","refs":[],"limit_ref":"GB 8978-1996/T2/石油类","std_status":"active","std_level":"national","std_title":"污水综合排放标准","std_effective_date":"1998-01-01","std_replaced_by":[],"medium":["water_wastewater"],"region":["全国"],"verified":false},{"clause_id":"GB 12348-2008#4.1","std_id":"GB 12348-2008","clause_no":"4.1","path":["第4章 环境噪声排放限值","4.1 厂界环境噪声排放限值"],"clause_type":"limit","text":"工业企业厂界环境噪声排放限值，单位 dB(A)。0类：昼间 50，夜间 40；1类：昼间 55，夜间 45；2类：昼间 60，夜间 50；3类：昼间 65，夜间 55；4类：昼间 70，夜间 55。夜间频发噪声的最大声级超过限值的幅度不得高于10 dB(A)；夜间偶发噪声的最大声级超过限值的幅度不得高于15 dB(A)。","searchable_text":"GB 12348-2008 4.1 第4章 环境噪声排放限值 4.1 厂界环境噪声排放限值 工业企业厂界环境噪声排放限值，单位 dB(A)。0类：昼间 50，夜间 40；1类：昼间 55，夜间 45；2类：昼间 60，夜间 50；3类：昼间 65，夜间 55；4类：昼间 70，夜间 55。夜间频发噪声的最大声级超过限值的幅度不得高于10 dB(A)；夜间偶发噪声的最大声级超过限值的幅度不得高于15 dB(A)。","refs":[],"limit_ref":"GB 12348-2008/T1/LAeq","std_status":"active","std_level":"national","std_title":"工业企业厂界环境噪声排放标准","std_effective_date":"2008-10-01","std_replaced_by":[],"medium":["noise"],"region":["全国"],"verified":false},{"clause_id":"GB 18597-2023#4.1","std_id":"GB 18597-2023","clause_no":"4.1","path":["第4章 贮存设施选址要求","4.1"],"clause_type":"management","text":"贮存设施选址应满足生态环境保护法律法规、规划和标准要求，并符合环境影响评价文件及其批复的要求。贮存设施应远离居民区、学校、医院等环境敏感目标，其位置应根据环境影响评价结论确定。","searchable_text":"GB 18597-2023 4.1 第4章 贮存设施选址要求 4.1 贮存设施选址应满足生态环境保护法律法规、规划和标准要求，并符合环境影响评价文件及其批复的要求。贮存设施应远离居民区、学校、医院等环境敏感目标，其位置应根据环境影响评价结论确定。","refs":["HJ 2.1-2016#general"],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"危险废物贮存污染控制标准","std_effective_date":"2023-07-01","std_replaced_by":[],"medium":["solid_waste"],"region":["全国"],"verified":false},{"clause_id":"GB 18597-2023#6.1","std_id":"GB 18597-2023","clause_no":"6.1","path":["第6章 贮存过程污染控制要求","6.1 一般规定"],"clause_type":"management","text":"危险废物贮存设施应设置防雨、防晒、防风、防渗设施，地面应做硬化处理并设置围堰或导流槽。不相容的危险废物应分区分类贮存，禁止将不相容的危险废物混合贮存。","searchable_text":"GB 18597-2023 6.1 第6章 贮存过程污染控制要求 6.1 一般规定 危险废物贮存设施应设置防雨、防晒、防风、防渗设施，地面应做硬化处理并设置围堰或导流槽。不相容的危险废物应分区分类贮存，禁止将不相容的危险废物混合贮存。","refs":[],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"危险废物贮存污染控制标准","std_effective_date":"2023-07-01","std_replaced_by":[],"medium":["solid_waste"],"region":["全国"],"verified":false},{"clause_id":"GB 18597-2001#6.1.1","std_id":"GB 18597-2001","clause_no":"6.1.1","path":["第6章 危险废物贮存设施的运行与管理","6.1 一般要求"],"clause_type":"management","text":"危险废物贮存设施应设置专用的贮存区域，并设置危险废物警示标志。不相容的危险废物必须分开存放，并设有隔离间隔断。","searchable_text":"GB 18597-2001 6.1.1 第6章 危险废物贮存设施的运行与管理 6.1 一般要求 危险废物贮存设施应设置专用的贮存区域，并设置危险废物警示标志。不相容的危险废物必须分开存放，并设有隔离间隔断。","refs":[],"limit_ref":null,"std_status":"superseded","std_level":"national","std_title":"危险废物贮存污染控制标准","std_effective_date":"2002-07-01","std_replaced_by":["GB 18597-2023"],"medium":["solid_waste"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-1996#4.1","std_id":"GB 3095-1996","clause_no":"4.1","path":["第4章 环境空气质量功能区划分","4.1 一类区二类区"],"clause_type":"definition","text":"环境空气质量功能区分为三类：一类区为自然保护区、林区、风景名胜区和其他需要特殊保护的地区；二类区为城镇规划中确定的居住区、商业交通居民混合区、文化区、一般工业区和农村地区；三类区为特定工业区。一类区执行一级标准，二类区执行二级标准，三类区执行三级标准。","searchable_text":"GB 3095-1996 4.1 第4章 环境空气质量功能区划分 4.1 一类区二类区 环境空气质量功能区分为三类：一类区为自然保护区、林区、风景名胜区和其他需要特殊保护的地区；二类区为城镇规划中确定的居住区、商业交通居民混合区、文化区、一般工业区和农村地区；三类区为特定工业区。一类区执行一级标准，二类区执行二级标准，三类区执行三级标准。","refs":[],"limit_ref":null,"std_status":"superseded","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"1996-10-01","std_replaced_by":["GB 3095-2012"],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-1996#表1-SO2","std_id":"GB 3095-1996","clause_no":"表1-SO2","path":["第4章 环境空气质量功能区划分","表1 各项污染物的浓度限值"],"clause_type":"limit","text":"二氧化硫（SO2），单位 mg/m3。年平均：一级 0.02，二级 0.06，三级 0.10；日平均：一级 0.05，二级 0.15，三级 0.25；1小时平均：一级 0.15，二级 0.50，三级 0.70。","searchable_text":"GB 3095-1996 表1-SO2 第4章 环境空气质量功能区划分 表1 各项污染物的浓度限值 二氧化硫（SO2），单位 mg/m3。年平均：一级 0.02，二级 0.06，三级 0.10；日平均：一级 0.05，二级 0.15，三级 0.25；1小时平均：一级 0.15，二级 0.50，三级 0.70。","refs":[],"limit_ref":"GB 3095-1996/T1/SO2","std_status":"superseded","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"1996-10-01","std_replaced_by":["GB 3095-2012"],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"GB 3095-1996#表1-TSP","std_id":"GB 3095-1996","clause_no":"表1-TSP","path":["第4章 环境空气质量功能区划分","表1 各项污染物的浓度限值"],"clause_type":"limit","text":"总悬浮颗粒物（TSP），单位 mg/m3。年平均：一级 0.08，二级 0.20，三级 0.30；日平均：一级 0.12，二级 0.30，三级 0.50。","searchable_text":"GB 3095-1996 表1-TSP 第4章 环境空气质量功能区划分 表1 各项污染物的浓度限值 总悬浮颗粒物（TSP），单位 mg/m3。年平均：一级 0.08，二级 0.20，三级 0.30；日平均：一级 0.12，二级 0.30，三级 0.50。","refs":[],"limit_ref":"GB 3095-1996/T1/TSP","std_status":"superseded","std_level":"national","std_title":"环境空气质量标准","std_effective_date":"1996-10-01","std_replaced_by":["GB 3095-2012"],"medium":["air_ambient"],"region":["全国"],"verified":false},{"clause_id":"DB33/ 2169-2018#4.1","std_id":"DB33/ 2169-2018","clause_no":"4.1","path":["第4章 水污染物排放控制要求","4.1 排放限值"],"clause_type":"limit","text":"浙江省内城镇污水处理厂主要水污染物排放浓度限值，单位 mg/L。化学需氧量（COD）30，氨氮（NH3-N）1.5（2.5），总氮 10（12），总磷 0.3。括号内为每年11月1日至次年3月31日的限值。","searchable_text":"DB33/ 2169-2018 4.1 第4章 水污染物排放控制要求 4.1 排放限值 浙江省内城镇污水处理厂主要水污染物排放浓度限值，单位 mg/L。化学需氧量（COD）30，氨氮（NH3-N）1.5（2.5），总氮 10（12），总磷 0.3。括号内为每年11月1日至次年3月31日的限值。","refs":["GB 8978-1996#4.1"],"limit_ref":"DB33/ 2169-2018/T1/COD","std_status":"active","std_level":"local","std_title":"城镇污水处理厂主要水污染物排放标准","std_effective_date":"2019-01-01","std_replaced_by":[],"medium":["water_wastewater"],"region":["浙江省"],"verified":false},{"clause_id":"HJ 2.1-2016#4","std_id":"HJ 2.1-2016","clause_no":"4","path":["第4章 评价工作程序","4 总则"],"clause_type":"method","text":"环境影响评价工作程序一般分为三个阶段：第一阶段为准备阶段，主要工作为研究有关文件，进行初步的工程分析和环境现状调查，筛选重点评价项目，确定各单项环境影响评价的工作等级，编制评价工作大纲；第二阶段为正式工作阶段，主要工作为进一步做工程分析和环境现状调查，并进行环境影响预测和评价环境影响；第三阶段为报告书编制阶段。","searchable_text":"HJ 2.1-2016 4 第4章 评价工作程序 4 总则 环境影响评价工作程序一般分为三个阶段：第一阶段为准备阶段，主要工作为研究有关文件，进行初步的工程分析和环境现状调查，筛选重点评价项目，确定各单项环境影响评价的工作等级，编制评价工作大纲；第二阶段为正式工作阶段，主要工作为进一步做工程分析和环境现状调查，并进行环境影响预测和评价环境影响；第三阶段为报告书编制阶段。","refs":[],"limit_ref":null,"std_status":"active","std_level":"industry","std_title":"建设项目环境影响评价技术导则 总纲","std_effective_date":"2017-01-01","std_replaced_by":[],"medium":["eia"],"region":["全国"],"verified":false},{"clause_id":"HJ 2.1-2016#5.2","std_id":"HJ 2.1-2016","clause_no":"5.2","path":["第5章 建设项目工程分析","5.2 污染源源强核算"],"clause_type":"method","text":"污染源源强核算应优先采用实测法，其次采用物料衡算法、经验系数法。对于改扩建项目，应分别给出现有工程、在建工程和拟建工程的源强，并说明现有工程存在的环保问题及整改措施。","searchable_text":"HJ 2.1-2016 5.2 第5章 建设项目工程分析 5.2 污染源源强核算 污染源源强核算应优先采用实测法，其次采用物料衡算法、经验系数法。对于改扩建项目，应分别给出现有工程、在建工程和拟建工程的源强，并说明现有工程存在的环保问题及整改措施。","refs":[],"limit_ref":null,"std_status":"active","std_level":"industry","std_title":"建设项目环境影响评价技术导则 总纲","std_effective_date":"2017-01-01","std_replaced_by":[],"medium":["eia"],"region":["全国"],"verified":false},{"clause_id":"HJ 819-2017#5","std_id":"HJ 819-2017","clause_no":"5","path":["第5章 监测点位与监测指标","5 自行监测方案"],"clause_type":"method","text":"排污单位应根据污染物排放标准和排污许可证要求确定监测点位、监测指标与监测频次。废水污染物排放口应设置在厂界外或厂界内便于采样和监测的位置，并设置规范的采样口和计量装置。","searchable_text":"HJ 819-2017 5 第5章 监测点位与监测指标 5 自行监测方案 排污单位应根据污染物排放标准和排污许可证要求确定监测点位、监测指标与监测频次。废水污染物排放口应设置在厂界外或厂界内便于采样和监测的位置，并设置规范的采样口和计量装置。","refs":["GB 8978-1996#4.1"],"limit_ref":null,"std_status":"active","std_level":"industry","std_title":"排污单位自行监测技术指南 总则","std_effective_date":"2017-06-01","std_replaced_by":[],"medium":["monitoring"],"region":["全国"],"verified":false},{"clause_id":"GB 34330-2017#4.1","std_id":"GB 34330-2017","clause_no":"4.1","path":["第4章 鉴别原则","4.1"],"clause_type":"definition","text":"固体废物是指在生产、生活和其他活动中产生的丧失原有利用价值或者虽未丧失利用价值但被抛弃或者放弃的固态、半固态和置于容器中的气态的物品、物质以及法律、行政法规规定纳入固体废物管理的物品、物质。","searchable_text":"GB 34330-2017 4.1 第4章 鉴别原则 4.1 固体废物是指在生产、生活和其他活动中产生的丧失原有利用价值或者虽未丧失利用价值但被抛弃或者放弃的固态、半固态和置于容器中的气态的物品、物质以及法律、行政法规规定纳入固体废物管理的物品、物质。","refs":[],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"固体废物鉴别标准 通则","std_effective_date":"2017-10-01","std_replaced_by":[],"medium":["solid_waste"],"region":["全国"],"verified":false},{"clause_id":"名录-2021#4.2","std_id":"名录-2021","clause_no":"4.2","path":["第4章 分类管理","4.2 报告书/报告表/登记表判定"],"clause_type":"management","text":"建设单位应当对照名录确定建设项目环境影响评价类别。名录中未列出的建设项目，不需要办理环境影响评价手续。环境影响报告书、报告表由建设单位报有审批权的生态环境主管部门审批；登记表由建设单位自行填报并备案。","searchable_text":"名录-2021 4.2 第4章 分类管理 4.2 报告书/报告表/登记表判定 建设单位应当对照名录确定建设项目环境影响评价类别。名录中未列出的建设项目，不需要办理环境影响评价手续。环境影响报告书、报告表由建设单位报有审批权的生态环境主管部门审批；登记表由建设单位自行填报并备案。","refs":["HJ 2.1-2016#4"],"limit_ref":null,"std_status":"active","std_level":"national","std_title":"建设项目环境影响评价分类管理名录（2021年版）","std_effective_date":"2021-01-01","std_replaced_by":[],"medium":["eia"],"region":["全国"],"verified":false}],"limits":[{"limit_id":"GB 3838-2002/T1/COD","std_id":"GB 3838-2002","table":"表1","pollutant":"COD","pollutant_alias":["化学需氧量","CODcr"],"medium":"water_surface","unit":"mg/L","grade":"Ⅲ","condition":"基本项目","limit_type":"concentration_max","value":20,"value_text":null,"value_display":"20"},{"limit_id":"GB 3838-2002/T1/COD","std_id":"GB 3838-2002","table":"表1","pollutant":"COD","pollutant_alias":["化学需氧量","CODcr"],"medium":"water_surface","unit":"mg/L","grade":"Ⅳ","condition":"基本项目","limit_type":"concentration_max","value":30,"value_text":null,"value_display":"30"},{"limit_id":"GB 3838-2002/T1/COD","std_id":"GB 3838-2002","table":"表1","pollutant":"COD","pollutant_alias":["化学需氧量","CODcr"],"medium":"water_surface","unit":"mg/L","grade":"Ⅴ","condition":"基本项目","limit_type":"concentration_max","value":40,"value_text":null,"value_display":"40"},{"limit_id":"GB 3838-2002/T1/NH3-N","std_id":"GB 3838-2002","table":"表1","pollutant":"NH3-N","pollutant_alias":["氨氮"],"medium":"water_surface","unit":"mg/L","grade":"Ⅲ","condition":"基本项目，以N计","limit_type":"concentration_max","value":1.0,"value_text":null,"value_display":"1.0"},{"limit_id":"GB 3838-2002/T1/NH3-N","std_id":"GB 3838-2002","table":"表1","pollutant":"NH3-N","pollutant_alias":["氨氮"],"medium":"water_surface","unit":"mg/L","grade":"Ⅳ","condition":"基本项目，以N计","limit_type":"concentration_max","value":1.5,"value_text":null,"value_display":"1.5"},{"limit_id":"GB 3838-2002/T1/TP","std_id":"GB 3838-2002","table":"表1","pollutant":"TP","pollutant_alias":["总磷"],"medium":"water_surface","unit":"mg/L","grade":"Ⅲ","condition":"河流","limit_type":"concentration_max","value":0.2,"value_text":null,"value_display":"0.2"},{"limit_id":"GB 3838-2002/T1/TP","std_id":"GB 3838-2002","table":"表1","pollutant":"TP","pollutant_alias":["总磷"],"medium":"water_surface","unit":"mg/L","grade":"Ⅲ","condition":"湖库","limit_type":"concentration_max","value":0.05,"value_text":null,"value_display":"0.05"},{"limit_id":"GB 3095-2012/T1/PM10","std_id":"GB 3095-2012","table":"表1","pollutant":"PM10","pollutant_alias":["颗粒物"],"medium":"air_ambient","unit":"μg/m3","grade":"二级","condition":"24小时平均","limit_type":"concentration_max","value":150,"value_text":null,"value_display":"150"},{"limit_id":"GB 3095-2012/T1/PM10","std_id":"GB 3095-2012","table":"表1","pollutant":"PM10","pollutant_alias":["颗粒物"],"medium":"air_ambient","unit":"μg/m3","grade":"一级","condition":"24小时平均","limit_type":"concentration_max","value":50,"value_text":null,"value_display":"50"},{"limit_id":"GB 3095-2012/T1/PM2.5","std_id":"GB 3095-2012","table":"表1","pollutant":"PM2.5","pollutant_alias":["细颗粒物"],"medium":"air_ambient","unit":"μg/m3","grade":"二级","condition":"年平均","limit_type":"concentration_max","value":35,"value_text":null,"value_display":"35"},{"limit_id":"GB 3095-2012/T1/SO2","std_id":"GB 3095-2012","table":"表1","pollutant":"SO2","pollutant_alias":["二氧化硫"],"medium":"air_ambient","unit":"μg/m3","grade":"二级","condition":"1小时平均","limit_type":"concentration_max","value":500,"value_text":null,"value_display":"500"},{"limit_id":"GB 3095-2012/T1/NO2","std_id":"GB 3095-2012","table":"表1","pollutant":"NO2","pollutant_alias":["二氧化氮"],"medium":"air_ambient","unit":"μg/m3","grade":"二级","condition":"1小时平均","limit_type":"concentration_max","value":200,"value_text":null,"value_display":"200"},{"limit_id":"GB 8978-1996/T2/COD","std_id":"GB 8978-1996","table":"表2","pollutant":"COD","pollutant_alias":["化学需氧量"],"medium":"water_wastewater","unit":"mg/L","grade":"一级","condition":"1998-01-01后建设单位","limit_type":"concentration_max","value":100,"value_text":null,"value_display":"100"},{"limit_id":"GB 8978-1996/T2/COD","std_id":"GB 8978-1996","table":"表2","pollutant":"COD","pollutant_alias":["化学需氧量"],"medium":"water_wastewater","unit":"mg/L","grade":"二级","condition":"1998-01-01后建设单位","limit_type":"concentration_max","value":150,"value_text":null,"value_display":"150"},{"limit_id":"GB 8978-1996/T2/COD","std_id":"GB 8978-1996","table":"表2","pollutant":"COD","pollutant_alias":["化学需氧量"],"medium":"water_wastewater","unit":"mg/L","grade":"三级","condition":"1998-01-01后建设单位","limit_type":"concentration_max","value":500,"value_text":null,"value_display":"500"},{"limit_id":"GB 8978-1996/T2/NH3-N","std_id":"GB 8978-1996","table":"表2","pollutant":"NH3-N","pollutant_alias":["氨氮"],"medium":"water_wastewater","unit":"mg/L","grade":"一级","condition":"1998-01-01后建设单位","limit_type":"concentration_max","value":15,"value_text":null,"value_display":"15"},{"limit_id":"GB 8978-1996/T2/NH3-N","std_id":"GB 8978-1996","table":"表2","pollutant":"NH3-N","pollutant_alias":["氨氮"],"medium":"water_wastewater","unit":"mg/L","grade":"二级","condition":"1998-01-01后建设单位","limit_type":"concentration_max","value":25,"value_text":null,"value_display":"25"},{"limit_id":"GB 8978-1996/T2/石油类","std_id":"GB 8978-1996","table":"表2","pollutant":"石油类","pollutant_alias":["石油类"],"medium":"water_wastewater","unit":"mg/L","grade":"一级","condition":"1998-01-01后建设单位","limit_type":"concentration_max","value":5.0,"value_text":null,"value_display":"5.0"},{"limit_id":"GB 12348-2008/T1/LAeq","std_id":"GB 12348-2008","table":"表1","pollutant":"噪声","pollutant_alias":["厂界噪声","LAeq"],"medium":"noise","unit":"dB(A)","grade":"2类","condition":"昼间","limit_type":"concentration_max","value":60,"value_text":null,"value_display":"60"},{"limit_id":"GB 12348-2008/T1/LAeq","std_id":"GB 12348-2008","table":"表1","pollutant":"噪声","pollutant_alias":["厂界噪声","LAeq"],"medium":"noise","unit":"dB(A)","grade":"2类","condition":"夜间","limit_type":"concentration_max","value":50,"value_text":null,"value_display":"50"},{"limit_id":"GB 12348-2008/T1/LAeq","std_id":"GB 12348-2008","table":"表1","pollutant":"噪声","pollutant_alias":["厂界噪声","LAeq"],"medium":"noise","unit":"dB(A)","grade":"3类","condition":"昼间","limit_type":"concentration_max","value":65,"value_text":null,"value_display":"65"},{"limit_id":"GB 12348-2008/T1/LAeq","std_id":"GB 12348-2008","table":"表1","pollutant":"噪声","pollutant_alias":["厂界噪声","LAeq"],"medium":"noise","unit":"dB(A)","grade":"3类","condition":"夜间","limit_type":"concentration_max","value":55,"value_text":null,"value_display":"55"},{"limit_id":"GB 3095-1996/T1/SO2","std_id":"GB 3095-1996","table":"表1","pollutant":"SO2","pollutant_alias":["二氧化硫"],"medium":"air_ambient","unit":"mg/m3","grade":"二级","condition":"1小时平均","limit_type":"concentration_max","value":0.5,"value_text":null,"value_display":"0.5"},{"limit_id":"GB 3095-1996/T1/SO2","std_id":"GB 3095-1996","table":"表1","pollutant":"SO2","pollutant_alias":["二氧化硫"],"medium":"air_ambient","unit":"mg/m3","grade":"一级","condition":"1小时平均","limit_type":"concentration_max","value":0.15,"value_text":null,"value_display":"0.15"},{"limit_id":"DB33/ 2169-2018/T1/COD","std_id":"DB33/ 2169-2018","table":"表1","pollutant":"COD","pollutant_alias":["化学需氧量"],"medium":"water_wastewater","unit":"mg/L","grade":"浙江地标","condition":"城镇污水处理厂，常规时段","limit_type":"concentration_max","value":30,"value_text":null,"value_display":"30"},{"limit_id":"DB33/ 2169-2018/T1/NH3-N","std_id":"DB33/ 2169-2018","table":"表1","pollutant":"NH3-N","pollutant_alias":["氨氮"],"medium":"water_wastewater","unit":"mg/L","grade":"浙江地标","condition":"城镇污水处理厂，常规时段","limit_type":"concentration_max","value":1.5,"value_text":null,"value_display":"1.5"},{"limit_id":"DB33/ 2169-2018/T1/NH3-N","std_id":"DB33/ 2169-2018","table":"表1","pollutant":"NH3-N","pollutant_alias":["氨氮"],"medium":"water_wastewater","unit":"mg/L","grade":"浙江地标","condition":"城镇污水处理厂，11月1日至次年3月31日","limit_type":"concentration_max","value":2.5,"value_text":null,"value_display":"2.5"}],"standards":[{"std_id":"GB 3838-2002","title":"地表水环境质量标准","level":"national","medium":["water_surface"],"issuing_body":"国家环境保护总局 / 国家质量监督检验检疫总局","publish_date":"2002-04-28","effective_date":"2002-06-01","status":"active","replaces":["GB 3838-1988"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["通用"],"note":"适用于中华人民共和国领域内江河、湖泊、运河、渠道、水库等具有使用功能的地表水水域"},"verified":false},{"std_id":"GB 3095-2012","title":"环境空气质量标准","level":"national","medium":["air_ambient"],"issuing_body":"环境保护部 / 国家质量监督检验检疫总局","publish_date":"2012-02-29","effective_date":"2016-01-01","status":"active","replaces":["GB 3095-1996"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["通用"],"note":"一类区为自然保护区、风景名胜区等需特殊保护地区；二类区为居住区、商业交通居民混合区、文化区、工业区和农村地区"},"verified":false},{"std_id":"GB 3095-1996","title":"环境空气质量标准","level":"national","medium":["air_ambient"],"issuing_body":"国家环境保护局 / 国家技术监督局","publish_date":"1996-01-18","effective_date":"1996-10-01","status":"superseded","replaces":[],"replaced_by":["GB 3095-2012"],"applicability":{"region":["全国"],"industry":["通用"],"note":"已被 GB 3095-2012 替代，禁止在新建项目环评与验收中引用"},"verified":false},{"std_id":"GB 8978-1996","title":"污水综合排放标准","level":"national","medium":["water_wastewater"],"issuing_body":"国家环境保护局 / 国家技术监督局","publish_date":"1996-10-04","effective_date":"1998-01-01","status":"active","replaces":["GB 8978-1988"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["通用"],"note":"行业性排放标准适用时优先；无行业标准的排污单位执行本标准。一级/二级/三级标准按排入水域功能与排放去向确定"},"verified":false},{"std_id":"GB 12348-2008","title":"工业企业厂界环境噪声排放标准","level":"national","medium":["noise"],"issuing_body":"国家环境保护总局 / 国家质量监督检验检疫总局","publish_date":"2008-08-19","effective_date":"2008-10-01","status":"active","replaces":["GB 12348-1990"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["工业"],"note":"厂界外声环境功能区类别 0/1/2/3/4 决定限值；夜间频发噪声与偶发噪声另有修正规定"},"verified":false},{"std_id":"GB 18597-2023","title":"危险废物贮存污染控制标准","level":"national","medium":["solid_waste"],"issuing_body":"生态环境部 / 国家市场监督管理总局","publish_date":"2023-01-20","effective_date":"2023-07-01","status":"active","replaces":["GB 18597-2001"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["危废产生与经营单位"],"note":"规定了危险废物贮存设施的选址、设计与运行污染控制要求"},"verified":false},{"std_id":"GB 18597-2001","title":"危险废物贮存污染控制标准","level":"national","medium":["solid_waste"],"issuing_body":"国家环境保护总局","publish_date":"2001-12-28","effective_date":"2002-07-01","status":"superseded","replaces":[],"replaced_by":["GB 18597-2023"],"applicability":{"region":["全国"],"industry":["危废产生与经营单位"],"note":"已被 GB 18597-2023 替代。语料中仍大量存在，是典型的时效性陷阱"},"verified":false},{"std_id":"DB33/ 2169-2018","title":"城镇污水处理厂主要水污染物排放标准","level":"local","medium":["water_wastewater"],"issuing_body":"浙江省人民政府 / 浙江省生态环境厅","publish_date":"2018-12-28","effective_date":"2019-01-01","status":"active","replaces":[],"replaced_by":[],"applicability":{"region":["浙江省"],"industry":["城镇污水处理厂"],"note":"地方标准严于国家标准时，浙江省内城镇污水处理厂执行本标准"},"verified":false},{"std_id":"HJ 2.1-2016","title":"建设项目环境影响评价技术导则 总纲","level":"industry","medium":["eia"],"issuing_body":"环境保护部","publish_date":"2016-12-08","effective_date":"2017-01-01","status":"active","replaces":["HJ 2.1-2011"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["建设项目环评"],"note":"规定了环境影响评价的原则、内容、工作程序与技术要求，是各要素导则的总纲"},"verified":false},{"std_id":"HJ 819-2017","title":"排污单位自行监测技术指南 总则","level":"industry","medium":["monitoring"],"issuing_body":"环境保护部","publish_date":"2017-04-25","effective_date":"2017-06-01","status":"active","replaces":[],"replaced_by":[],"applicability":{"region":["全国"],"industry":["排污单位"],"note":"规定了自行监测的一般要求、监测点位、指标、频次与技术方法"},"verified":false},{"std_id":"GB 34330-2017","title":"固体废物鉴别标准 通则","level":"national","medium":["solid_waste"],"issuing_body":"环境保护部 / 国家质量监督检验检疫总局","publish_date":"2017-05-27","effective_date":"2017-10-01","status":"active","replaces":[],"replaced_by":[],"applicability":{"region":["全国"],"industry":["通用"],"note":"规定了依据产生来源、利用和处置过程鉴别固体废物应遵循的规则"},"verified":false},{"std_id":"名录-2021","title":"建设项目环境影响评价分类管理名录（2021年版）","level":"national","medium":["eia"],"issuing_body":"生态环境部","publish_date":"2020-11-30","effective_date":"2021-01-01","status":"active","replaces":["名录-2018"],"replaced_by":[],"applicability":{"region":["全国"],"industry":["建设项目"],"note":"按项目类别与规模，确定编制环境影响报告书、报告表或填报登记表"},"verified":false}],"chain":[{"from":"GB 3095-1996","to":"GB 3095-2012","type":"full_replacement","effective_date":"2016-01-01"},{"from":"GB 18597-2001","to":"GB 18597-2023","type":"full_replacement","effective_date":"2023-07-01"},{"from":"GB 3838-1988","to":"GB 3838-2002","type":"full_replacement","effective_date":"2002-06-01"},{"from":"GB 8978-1988","to":"GB 8978-1996","type":"full_replacement","effective_date":"1998-01-01"},{"from":"GB 12348-1990","to":"GB 12348-2008","type":"full_replacement","effective_date":"2008-10-01"},{"from":"HJ 2.1-2011","to":"HJ 2.1-2016","type":"full_replacement","effective_date":"2017-01-01"},{"from":"名录-2018","to":"名录-2021","type":"full_replacement","effective_date":"2021-01-01"}],"meta":{"purpose":"知识库结构演示数据。用于跑通 解析->切分->索引->检索->工具调用->评测 全链路。","verified":false,"verified_note":"数值型字段未经官方文本逐条核验。生产环境必须通过官方数据源适配器重新灌入，并置 verified=true。评测集不得建立在校验数据之上。","official_sources":["生态环境部 标准库 https://www.mee.gov.cn/ywgz/fgbz/","全国标准信息公共服务平台 https://std.samr.gov.cn/","浙江省 生态环境厅 地方标准栏目"],"loaded_at":"2026-09-14"},"stats":{"n_standards":12,"n_clauses":28,"n_limits":27,"n_stale_clauses":4,"n_verified_standards":0}},"golden":{"_meta":{"version":"1.0","n_items":24,"labeling":"人工标注。retrieval 类指标依赖 expected_clause_ids；生成类依赖 key_points 与 expected_numbers。","categories":{"limit_lookup":"限值直查，考检索精度与数值准确率","staleness":"时效性陷阱，语料中并存失效版本，考 check_standard_status 是否被调用","precedence":"标准适用优先级裁决，考 resolve_applicable_standard","eia_class":"环评类别判定，考名录工具","refusal":"无依据应拒答，考幻觉抑制","multi_constraint":"多条件组合（介质+等级+属地+时段）"},"note":"本评测集建立在未核验的演示数据上，仅用于验证评测管线本身。生产环境需重建独立评测集。"},"items":[{"id":"Q001","category":"limit_lookup","query":"地表水III类标准的化学需氧量限值是多少","expected_clause_ids":["GB 3838-2002#表1-序号3"],"expected_std_ids":["GB 3838-2002"],"expected_tool":"lookup_limit","key_points":["20","mg/L"],"expected_numbers":[{"value":20,"unit":"mg/L","name":"COD"}],"must_not_cite":["GB 8978-1996"],"should_refuse":false,"difficulty":"easy"},{"id":"Q002","category":"limit_lookup","query":"环境空气PM2.5二级标准的年平均浓度限值","expected_clause_ids":["GB 3095-2012#表1-PM2.5"],"expected_std_ids":["GB 3095-2012"],"expected_tool":"lookup_limit","key_points":["35","μg/m3"],"expected_numbers":[{"value":35,"unit":"μg/m3","name":"PM2.5"}],"must_not_cite":["GB 3095-1996"],"should_refuse":false,"difficulty":"easy"},{"id":"Q003","category":"staleness","query":"危险废物贮存设施要满足什么污染控制要求？GB 18597 是怎么规定的","expected_clause_ids":["GB 18597-2023#6.1","GB 18597-2023#4.1"],"expected_std_ids":["GB 18597-2023"],"expected_tool":"check_standard_status","key_points":["GB 18597-2023","已被替代","防渗"],"expected_numbers":[],"must_not_cite":["GB 18597-2001"],"should_refuse":false,"difficulty":"hard","rationale":"语料同时含 2001 与 2023 两版，2001 版条文措辞更贴近关键词，纯向量检索极易命中失效版本。正确行为：检出并提示替代关系。"},{"id":"Q004","category":"staleness","query":"现在环境空气质量标准执行的是哪个版本","expected_clause_ids":["GB 3095-2012#4.1"],"expected_std_ids":["GB 3095-2012"],"expected_tool":"search_standard","key_points":["GB 3095-2012","已被替代"],"expected_numbers":[],"must_not_cite":["GB 3095-1996"],"should_refuse":false,"difficulty":"medium"},{"id":"Q005","category":"precedence","query":"浙江省的城镇污水处理厂COD执行什么排放限值","expected_clause_ids":["DB33/ 2169-2018#4.1"],"expected_std_ids":["DB33/ 2169-2018"],"expected_tool":"resolve_applicable_standard","key_points":["DB33/ 2169-2018","30","优先适用"],"expected_numbers":[{"value":30,"unit":"mg/L","name":"COD"}],"must_not_cite":["GB 18597-2001"],"should_refuse":false,"difficulty":"hard","rationale":"地标严于国标（30 vs 100），属地查询必须裁决为地标。答成 GB 8978 的一级标准 100 即为错误。"},{"id":"Q006","category":"precedence","query":"排入地表水III类水域的工业废水执行几级排放标准，COD限值多少","expected_clause_ids":["GB 8978-1996#4.1","GB 8978-1996#表2-COD"],"expected_std_ids":["GB 8978-1996"],"expected_tool":"resolve_applicable_standard","key_points":["一级标准","100"],"expected_numbers":[{"value":100,"unit":"mg/L","name":"COD"}],"must_not_cite":[],"should_refuse":false,"difficulty":"medium"},{"id":"Q007","category":"limit_lookup","query":"地表水总磷III类限值，河流和湖库有区别吗","expected_clause_ids":["GB 3838-2002#表1-序号4"],"expected_std_ids":["GB 3838-2002"],"expected_tool":"lookup_limit","key_points":["河流","湖库","0.2","0.05"],"expected_numbers":[{"value":0.2,"unit":"mg/L","name":"TP-河流"},{"value":0.05,"unit":"mg/L","name":"TP-湖库"}],"must_not_cite":[],"should_refuse":false,"difficulty":"medium","rationale":"考适用条件完整性——只答一个数即为不完整。"},{"id":"Q008","category":"limit_lookup","query":"厂界噪声2类标准昼间夜间限值","expected_clause_ids":["GB 12348-2008#4.1"],"expected_std_ids":["GB 12348-2008"],"expected_tool":"lookup_limit","key_points":["60","50","昼间","夜间"],"expected_numbers":[{"value":60,"unit":"dB(A)","name":"2类昼间"},{"value":50,"unit":"dB(A)","name":"2类夜间"}],"must_not_cite":[],"should_refuse":false,"difficulty":"easy"},{"id":"Q009","category":"limit_lookup","query":"废水氨氮一级排放标准限值是多少","expected_clause_ids":["GB 8978-1996#表2-NH3-N"],"expected_std_ids":["GB 8978-1996"],"expected_tool":"lookup_limit","key_points":["15","mg/L"],"expected_numbers":[{"value":15,"unit":"mg/L","name":"NH3-N"}],"must_not_cite":[],"should_refuse":false,"difficulty":"easy"},{"id":"Q010","category":"limit_lookup","query":"环境空气二氧化硫二级标准1小时平均限值","expected_clause_ids":["GB 3095-2012#表1-SO2"],"expected_std_ids":["GB 3095-2012"],"expected_tool":"lookup_limit","key_points":["500","μg/m3"],"expected_numbers":[{"value":500,"unit":"μg/m3","name":"SO2-1h"}],"must_not_cite":["GB 3095-1996"],"should_refuse":false,"difficulty":"medium"},{"id":"Q011","category":"eia_class","query":"日处理能力12万吨的城镇污水处理厂要做环境影响报告书还是报告表","expected_clause_ids":["名录-2021#4.2"],"expected_std_ids":["名录-2021"],"expected_tool":"classify_eia_category","key_points":["报告书"],"expected_numbers":[],"must_not_cite":[],"should_refuse":false,"difficulty":"hard","caveat":"答案依赖名录演示表，属于工具链路验证而非知识验证"},{"id":"Q012","category":"refusal","query":"2026年最新修订的GB 3838中关于微塑料的限值是多少","expected_clause_ids":[],"expected_std_ids":[],"expected_tool":"search_standard","key_points":[],"expected_numbers":[],"must_not_cite":[],"should_refuse":true,"difficulty":"hard","rationale":"库中不存在该内容。正确行为：拒答并说明依据不足，而非编造一个数值。这是幻觉抑制的核心考点。"},{"id":"Q013","category":"refusal","query":"浙江省对餐饮油烟的非甲烷总烃排放限值具体是多少毫克每立方米","expected_clause_ids":[],"expected_std_ids":[],"expected_tool":"search_standard","key_points":[],"expected_numbers":[],"must_not_cite":[],"should_refuse":true,"difficulty":"hard"},{"id":"Q014","category":"multi_constraint","query":"浙江城镇污水处理厂11月到次年3月的氨氮限值","expected_clause_ids":["DB33/ 2169-2018#4.1"],"expected_std_ids":["DB33/ 2169-2018"],"expected_tool":"lookup_limit","key_points":["2.5","11月1日"],"expected_numbers":[{"value":2.5,"unit":"mg/L","name":"NH3-N-冬季"}],"must_not_cite":[],"should_refuse":false,"difficulty":"hard","rationale":"时段条件参与限值选择，是环保领域最典型的条件依赖陷阱。"},{"id":"Q015","category":"staleness","query":"GB 3095-1996 现在还适用吗","expected_clause_ids":[],"expected_std_ids":["GB 3095-2012"],"expected_tool":"check_standard_status","key_points":["已被替代","GB 3095-2012"],"expected_numbers":[],"must_not_cite":["GB 3095-1996"],"should_refuse":false,"difficulty":"medium"},{"id":"Q016","category":"staleness","query":"GB 18597-2001 和 GB 18597-2023 应该用哪个","expected_clause_ids":[],"expected_std_ids":["GB 18597-2023"],"expected_tool":"trace_standard_chain","key_points":["GB 18597-2023","替代"],"expected_numbers":[],"must_not_cite":["GB 18597-2001"],"should_refuse":false,"difficulty":"medium"},{"id":"Q017","category":"limit_lookup","query":"地表水氨氮IV类限值","expected_clause_ids":["GB 3838-2002#表1-序号5"],"expected_std_ids":["GB 3838-2002"],"expected_tool":"lookup_limit","key_points":["1.5"],"expected_numbers":[{"value":1.5,"unit":"mg/L","name":"NH3-N"}],"must_not_cite":[],"should_refuse":false,"difficulty":"easy"},{"id":"Q018","category":"limit_lookup","query":"石油类一级排放标准","expected_clause_ids":["GB 8978-1996#表2-石油类"],"expected_std_ids":["GB 8978-1996"],"expected_tool":"lookup_limit","key_points":["5.0"],"expected_numbers":[{"value":5.0,"unit":"mg/L","name":"石油类"}],"must_not_cite":[],"should_refuse":false,"difficulty":"easy"},{"id":"Q019","category":"limit_lookup","query":"环境空气PM10二级标准24小时平均限值","expected_clause_ids":["GB 3095-2012#表1-PM10"],"expected_std_ids":["GB 3095-2012"],"expected_tool":"lookup_limit","key_points":["150"],"expected_numbers":[{"value":150,"unit":"μg/m3","name":"PM10-24h"}],"must_not_cite":["GB 3095-1996"],"should_refuse":false,"difficulty":"easy"},{"id":"Q020","category":"multi_constraint","query":"地表水III类COD限值和废水一级排放COD限值有什么区别","expected_clause_ids":["GB 3838-2002#表1-序号3","GB 8978-1996#表2-COD"],"expected_std_ids":["GB 3838-2002","GB 8978-1996"],"expected_tool":"lookup_limit","key_points":["20","100"],"expected_numbers":[{"value":20,"unit":"mg/L","name":"地表水COD"},{"value":100,"unit":"mg/L","name":"废水COD"}],"must_not_cite":[],"should_refuse":false,"difficulty":"hard","rationale":"跨标准对比，考多路证据聚合与避免混淆两个语境。"},{"id":"Q021","category":"precedence","query":"危险废物贮存的选址有哪些要求","expected_clause_ids":["GB 18597-2023#4.1"],"expected_std_ids":["GB 18597-2023"],"expected_tool":"search_standard","key_points":["GB 18597-2023","环境敏感"],"expected_numbers":[],"must_not_cite":["GB 18597-2001"],"should_refuse":false,"difficulty":"medium"},{"id":"Q022","category":"eia_class","query":"开一家餐饮店需要做环评吗","expected_clause_ids":["名录-2021#4.2"],"expected_std_ids":["名录-2021"],"expected_tool":"classify_eia_category","key_points":["登记表"],"expected_numbers":[],"must_not_cite":[],"should_refuse":false,"difficulty":"medium"},{"id":"Q023","category":"refusal","query":"帮我把这个项目的环评报告书直接写出来","expected_clause_ids":[],"expected_std_ids":[],"expected_tool":"search_standard","key_points":[],"expected_numbers":[],"must_not_cite":[],"should_refuse":true,"difficulty":"medium","rationale":"超范围请求。正确行为：说明能力边界，而非产出伪造文档。"},{"id":"Q024","category":"multi_constraint","query":"杭州某工业园区企业厂界噪声3类夜间超标怎么判","expected_clause_ids":["GB 12348-2008#4.1"],"expected_std_ids":["GB 12348-2008"],"expected_tool":"lookup_limit","key_points":["55","夜间"],"expected_numbers":[{"value":55,"unit":"dB(A)","name":"3类夜间"}],"must_not_cite":[],"should_refuse":false,"difficulty":"hard"}]},"eval":{"aggregate":{"recall@5":0.8947368421052632,"recall@10":0.8947368421052632,"precision@5":0.1840277777777778,"mrr":0.8333333333333334,"ndcg@10":0.8425339509952372,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":0.9761904761904762,"citation_recall":0.9523809523809523,"tool_selection":0.9583333333333334,"tool_success_rate":0.9583333333333334,"tool_efficiency":1.0,"refusal_correct":1.0,"stale_citation_rate":0.0,"avg_tool_calls":2.3333333333333335,"n_cases":24,"by_category":{"limit_lookup":{"n":9,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"stale_citation_rate":0.0,"refusal_correct":1.0,"recall@5":1.0},"staleness":{"n":4,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"stale_citation_rate":0.0,"refusal_correct":1.0,"recall@5":1.0},"precedence":{"n":3,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"stale_citation_rate":0.0,"refusal_correct":1.0,"recall@5":1.0},"eia_class":{"n":2,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"stale_citation_rate":0.0,"refusal_correct":1.0,"recall@5":0.0},"refusal":{"n":3,"numerical_accuracy":null,"key_point_coverage":null,"conclusion_accuracy":null,"stale_citation_rate":0.0,"refusal_correct":1.0,"recall@5":null},"multi_constraint":{"n":3,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"stale_citation_rate":0.0,"refusal_correct":1.0,"recall@5":1.0}}},"gates":{"recall_at_5":0.85,"mrr":0.7,"citation_precision":0.9,"numerical_accuracy":0.9,"conclusion_accuracy":0.95,"stale_citation_rate":0.0,"tool_selection_accuracy":0.9,"refusal_accuracy":0.8},"gate_result":{"passed":true,"failures":[],"n_gates":8,"n_evaluated":8},"cases":[{"id":"Q001","category":"limit_lookup","query":"地表水III类标准的化学需氧量限值是多少","refused":false,"should_refuse":false,"n_citations":1,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q002","category":"limit_lookup","query":"环境空气PM2.5二级标准的年平均浓度限值","refused":false,"should_refuse":false,"n_citations":1,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q003","category":"staleness","query":"危险废物贮存设施要满足什么污染控制要求？GB 18597 是怎么规定的","refused":false,"should_refuse":false,"n_citations":2,"plan":["check_standard_status","search_standard"],"expected_tool":"check_standard_status","stale_warnings":["GB 18597-2001 已被替代，应改用 GB 18597-2023"],"recall@5":1.0,"recall@10":1.0,"precision@5":0.5,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q004","category":"staleness","query":"现在环境空气质量标准执行的是哪个版本","refused":false,"should_refuse":false,"n_citations":1,"plan":["search_standard"],"expected_tool":"search_standard","stale_warnings":["GB 3095-1996 已被替代，应改用 GB 3095-2012"],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":0.3333333333333333,"ndcg@10":0.5,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q005","category":"precedence","query":"浙江省的城镇污水处理厂COD执行什么排放限值","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","resolve_applicable_standard","search_standard"],"expected_tool":"resolve_applicable_standard","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1},{"id":"Q006","category":"precedence","query":"排入地表水III类水域的工业废水执行几级排放标准，COD限值多少","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","resolve_applicable_standard","search_standard"],"expected_tool":"resolve_applicable_standard","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.4,"mrr":1.0,"ndcg@10":0.8772153153380493,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1},{"id":"Q007","category":"limit_lookup","query":"地表水总磷III类限值，河流和湖库有区别吗","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q008","category":"limit_lookup","query":"厂界噪声2类标准昼间夜间限值","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.3333333333333333,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q009","category":"limit_lookup","query":"废水氨氮一级排放标准限值是多少","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","resolve_applicable_standard","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1},{"id":"Q010","category":"limit_lookup","query":"环境空气二氧化硫二级标准1小时平均限值","refused":false,"should_refuse":false,"n_citations":1,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q011","category":"eia_class","query":"日处理能力12万吨的城镇污水处理厂要做环境影响报告书还是报告表","refused":false,"should_refuse":false,"n_citations":1,"plan":["classify_eia_category"],"expected_tool":"classify_eia_category","stale_warnings":[],"recall@5":0.0,"recall@10":0.0,"precision@5":0.0,"mrr":0.0,"ndcg@10":0.0,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q012","category":"refusal","query":"2026年最新修订的GB 3838中关于微塑料的限值是多少","refused":true,"should_refuse":true,"n_citations":0,"plan":["search_standard"],"expected_tool":"search_standard","stale_warnings":[],"recall@5":null,"recall@10":null,"precision@5":0.0,"mrr":null,"ndcg@10":null,"numerical_accuracy":null,"key_point_coverage":null,"conclusion_accuracy":null,"citation_precision":null,"citation_recall":null,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q013","category":"refusal","query":"浙江省对餐饮油烟的非甲烷总烃排放限值具体是多少毫克每立方米","refused":true,"should_refuse":true,"n_citations":0,"plan":["search_standard"],"expected_tool":"search_standard","stale_warnings":[],"recall@5":null,"recall@10":null,"precision@5":0.0,"mrr":null,"ndcg@10":null,"numerical_accuracy":null,"key_point_coverage":null,"conclusion_accuracy":null,"citation_precision":null,"citation_recall":null,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q014","category":"multi_constraint","query":"浙江城镇污水处理厂11月到次年3月的氨氮限值","refused":false,"should_refuse":false,"n_citations":3,"plan":["lookup_limit","resolve_applicable_standard","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1},{"id":"Q015","category":"staleness","query":"GB 3095-1996 现在还适用吗","refused":false,"should_refuse":false,"n_citations":2,"plan":["check_standard_status","search_standard"],"expected_tool":"check_standard_status","stale_warnings":["GB 3095-1996 已被替代，应改用 GB 3095-2012","该标准已被替代，禁止用于新建项目环评/验收，请改用 GB 3095-2012"],"recall@5":null,"recall@10":null,"precision@5":0.0,"mrr":null,"ndcg@10":null,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":0.5,"citation_recall":0.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q016","category":"staleness","query":"GB 18597-2001 和 GB 18597-2023 应该用哪个","refused":false,"should_refuse":false,"n_citations":2,"plan":["check_standard_status","check_standard_status","trace_standard_chain","search_standard"],"expected_tool":"trace_standard_chain","stale_warnings":["GB 18597-2001 已被替代，应改用 GB 18597-2023","该标准已被替代，禁止用于新建项目环评/验收，请改用 GB 18597-2023"],"recall@5":null,"recall@10":null,"precision@5":0.0,"mrr":null,"ndcg@10":null,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1},{"id":"Q017","category":"limit_lookup","query":"地表水氨氮IV类限值","refused":false,"should_refuse":false,"n_citations":1,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q018","category":"limit_lookup","query":"石油类一级排放标准","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","resolve_applicable_standard","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1},{"id":"Q019","category":"limit_lookup","query":"环境空气PM10二级标准24小时平均限值","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.2,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":2,"stale_citation":0,"refusal_correct":1},{"id":"Q020","category":"multi_constraint","query":"地表水III类COD限值和废水一级排放COD限值有什么区别","refused":false,"should_refuse":false,"n_citations":2,"plan":["lookup_limit","lookup_limit","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.4,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":3,"stale_citation":0,"refusal_correct":1},{"id":"Q021","category":"precedence","query":"危险废物贮存的选址有哪些要求","refused":false,"should_refuse":false,"n_citations":2,"plan":["search_standard"],"expected_tool":"search_standard","stale_warnings":["GB 18597-2001 已被替代，应改用 GB 18597-2023"],"recall@5":1.0,"recall@10":1.0,"precision@5":0.25,"mrr":0.5,"ndcg@10":0.6309297535714575,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q022","category":"eia_class","query":"开一家餐饮店需要做环评吗","refused":false,"should_refuse":false,"n_citations":1,"plan":["classify_eia_category"],"expected_tool":"classify_eia_category","stale_warnings":[],"recall@5":0.0,"recall@10":0.0,"precision@5":0.0,"mrr":0.0,"ndcg@10":0.0,"numerical_accuracy":null,"key_point_coverage":1.0,"conclusion_accuracy":null,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q023","category":"refusal","query":"帮我把这个项目的环评报告书直接写出来","refused":true,"should_refuse":true,"n_citations":0,"plan":["classify_eia_category"],"expected_tool":"search_standard","stale_warnings":[],"recall@5":null,"recall@10":null,"precision@5":0.0,"mrr":null,"ndcg@10":null,"numerical_accuracy":null,"key_point_coverage":null,"conclusion_accuracy":null,"citation_precision":null,"citation_recall":null,"tool_selection":0,"tool_success_rate":0.0,"tool_efficiency":1.0,"n_tool_calls":1,"stale_citation":0,"refusal_correct":1},{"id":"Q024","category":"multi_constraint","query":"杭州某工业园区企业厂界噪声3类夜间超标怎么判","refused":false,"should_refuse":false,"n_citations":3,"plan":["lookup_limit","resolve_applicable_standard","search_standard"],"expected_tool":"lookup_limit","stale_warnings":[],"recall@5":1.0,"recall@10":1.0,"precision@5":0.3333333333333333,"mrr":1.0,"ndcg@10":1.0,"numerical_accuracy":1.0,"key_point_coverage":1.0,"conclusion_accuracy":1.0,"citation_precision":1.0,"citation_recall":1.0,"tool_selection":1,"tool_success_rate":1.0,"tool_efficiency":1.0,"n_tool_calls":4,"stale_citation":0,"refusal_correct":1}]},"diagnosis":{"n_cases":24,"n_passed":24,"pass_rate":1.0,"attribution":[{"code":"R1","name":"检索未召回","layer":"retrieval","severity":"weak","count":2,"rate":0.083,"case_ids":["Q011","Q022"],"root_cause":"查询词与条文表述无重叠，或元数据过滤过严把正确条文剪掉了","actions":"① 补领域同义词表（污染物别名/俗称）② 检查 _passes_filter 的 medium 映射是否过窄 ③ 降低 MIN_SCORE_THRESHOLD 后复测","priority":13},{"code":"T1","name":"工具选择错误","layer":"planning","severity":"weak","count":1,"rate":0.042,"case_ids":["Q023"],"root_cause":"规划器未选择预期工具，走了错误路径","actions":"① 补规划器规则分支 ② 若是 llm 规划器，在 system prompt 增加该场景的 few-shot ③ 检查槽位抽取是否漏识别（如等级/属地）","priority":16},{"code":"T2","name":"工具执行失败","layer":"tools","severity":"weak","count":1,"rate":0.042,"case_ids":["Q023"],"root_cause":"工具被调用但返回 error，多为参数不匹配或库中无记录","actions":"① 校验参数 schema 与归一化逻辑 ② 为 lookup_limit 增加模糊匹配降级 ③ 记录缺失的标准/污染物并补充数据","priority":17}],"layer_distribution":{"retrieval":2,"planning":1,"tools":1},"gate_result":{"passed":true,"failures":[],"n_gates":8,"n_evaluated":8},"next_sprint":["R1 检索未召回（2例，retrieval层）：① 补领域同义词表（污染物别名/俗称）② 检查 _passes_filter 的 medium 映射是否过窄 ③ 降低 MIN_SCORE_THRESHOLD 后复测","T1 工具选择错误（1例，planning层）：① 补规划器规则分支 ② 若是 llm 规划器，在 system prompt 增加该场景的 few-shot ③ 检查槽位抽取是否漏识别（如等级/属地）","T2 工具执行失败（1例，tools层）：① 校验参数 schema 与归一化逻辑 ② 为 lookup_limit 增加模糊匹配降级 ③ 记录缺失的标准/污染物并补充数据"]}};
+</script>
+<script>
+"use strict";
+/* =========================================================================
+ *  环保规范检索 Agent · 前端 Demo
+ *
+ *  本文件包含两套执行路径：
+ *    A. 离线引擎 —— 与 src/ 下 Python 实现逐行对齐的 JS 移植
+ *       （分词、BM25、MD5 哈希向量、RRF、重排、8 个工具、规则规划器、答案合成）
+ *       目的：零依赖、零后端即可复现完全相同的检索与判定结果。
+ *    B. 真实后端 —— 若 /api/health 可达，则改用 Python Agent 的真实输出。
+ *       两条路径的数据结构一致，渲染层不需要感知差异。
+ * ========================================================================= */
+
+const D = window.__ENVSPEC_DATA__;
+const IDX = D.index, GOLDEN = D.golden.items, EVAL = D.eval;
+
+/* ---------- 常量：镜像 src/config.py，改一处必须改两处 ---------- */
+const CFG = {
+  BM25_TOP_K: 20, VECTOR_TOP_K: 20, RRF_K: 60, FUSION_TOP_K: 15,
+  RERANK_TOP_N: 6, MIN_SCORE_THRESHOLD: 0.05, MAX_TOOL_ROUNDS: 4, EMBED_DIM: 512
+};
+
+/* =====================================================================
+ * 0. MD5 —— 必须与 hashlib.md5 逐位一致，否则哈希向量检索结果会整体漂移
+ *
+ * 这里踩过一个坑：最初为了简洁，把 64 步压缩成一个循环，靠临时变量做
+ * a/b/c/d 轮转。但 MD5 每步更新的目标变量与函数入参位置是错位的
+ * （a=ff(a,b,c,d) / d=ff(d,a,b,c) / c=ff(c,d,a,b) / b=ff(b,c,d,a)），
+ * 用统一轮转表达会得到错误结果 —— 而且错得不明显：BM25 完全一致、
+ * 只有向量那一路的分数悄悄变了，表现为个别题目的排序微调。
+ * 是双引擎一致性测试把 MD5 测试向量对出来才发现的。
+ * 结论：这类有既定参考实现的算法不要"优雅重写"，照抄显式步骤。
+ * ===================================================================== */
+const MD5 = (function () {
+  const add32 = (a, b) => (a + b) | 0;              // ToInt32 即 mod 2^32
+  const rol = (n, c) => (n << c) | (n >>> (32 - c));
+  const cmn = (q, a, b, x, s, t) => add32(rol(add32(add32(a, q), add32(x, t)), s), b);
+  const ff = (a, b, c, d, x, s, t) => cmn((b & c) | (~b & d), a, b, x, s, t);
+  const gg = (a, b, c, d, x, s, t) => cmn((b & d) | (c & ~d), a, b, x, s, t);
+  const hh = (a, b, c, d, x, s, t) => cmn(b ^ c ^ d, a, b, x, s, t);
+  const ii = (a, b, c, d, x, s, t) => cmn(c ^ (b | ~d), a, b, x, s, t);
+
+  function cycle(x, k) {
+    let a = x[0], b = x[1], c = x[2], d = x[3];
+    a = ff(a, b, c, d, k[0], 7, -680876936);
+    d = ff(d, a, b, c, k[1], 12, -389564586);
+    c = ff(c, d, a, b, k[2], 17, 606105819);
+    b = ff(b, c, d, a, k[3], 22, -1044525330);
+    a = ff(a, b, c, d, k[4], 7, -176418897);
+    d = ff(d, a, b, c, k[5], 12, 1200080426);
+    c = ff(c, d, a, b, k[6], 17, -1473231341);
+    b = ff(b, c, d, a, k[7], 22, -45705983);
+    a = ff(a, b, c, d, k[8], 7, 1770035416);
+    d = ff(d, a, b, c, k[9], 12, -1958414417);
+    c = ff(c, d, a, b, k[10], 17, -42063);
+    b = ff(b, c, d, a, k[11], 22, -1990404162);
+    a = ff(a, b, c, d, k[12], 7, 1804603682);
+    d = ff(d, a, b, c, k[13], 12, -40341101);
+    c = ff(c, d, a, b, k[14], 17, -1502002290);
+    b = ff(b, c, d, a, k[15], 22, 1236535329);
+
+    a = gg(a, b, c, d, k[1], 5, -165796510);
+    d = gg(d, a, b, c, k[6], 9, -1069501632);
+    c = gg(c, d, a, b, k[11], 14, 643717713);
+    b = gg(b, c, d, a, k[0], 20, -373897302);
+    a = gg(a, b, c, d, k[5], 5, -701558691);
+    d = gg(d, a, b, c, k[10], 9, 38016083);
+    c = gg(c, d, a, b, k[15], 14, -660478335);
+    b = gg(b, c, d, a, k[4], 20, -405537848);
+    a = gg(a, b, c, d, k[9], 5, 568446438);
+    d = gg(d, a, b, c, k[14], 9, -1019803690);
+    c = gg(c, d, a, b, k[3], 14, -187363961);
+    b = gg(b, c, d, a, k[8], 20, 1163531501);
+    a = gg(a, b, c, d, k[13], 5, -1444681467);
+    d = gg(d, a, b, c, k[2], 9, -51403784);
+    c = gg(c, d, a, b, k[7], 14, 1735328473);
+    b = gg(b, c, d, a, k[12], 20, -1926607734);
+
+    a = hh(a, b, c, d, k[5], 4, -378558);
+    d = hh(d, a, b, c, k[8], 11, -2022574463);
+    c = hh(c, d, a, b, k[11], 16, 1839030562);
+    b = hh(b, c, d, a, k[14], 23, -35309556);
+    a = hh(a, b, c, d, k[1], 4, -1530992060);
+    d = hh(d, a, b, c, k[4], 11, 1272893353);
+    c = hh(c, d, a, b, k[7], 16, -155497632);
+    b = hh(b, c, d, a, k[10], 23, -1094730640);
+    a = hh(a, b, c, d, k[13], 4, 681279174);
+    d = hh(d, a, b, c, k[0], 11, -358537222);
+    c = hh(c, d, a, b, k[3], 16, -722521979);
+    b = hh(b, c, d, a, k[6], 23, 76029189);
+    a = hh(a, b, c, d, k[9], 4, -640364487);
+    d = hh(d, a, b, c, k[12], 11, -421815835);
+    c = hh(c, d, a, b, k[15], 16, 530742520);
+    b = hh(b, c, d, a, k[2], 23, -995338651);
+
+    a = ii(a, b, c, d, k[0], 6, -198630844);
+    d = ii(d, a, b, c, k[7], 10, 1126891415);
+    c = ii(c, d, a, b, k[14], 15, -1416354905);
+    b = ii(b, c, d, a, k[5], 21, -57434055);
+    a = ii(a, b, c, d, k[12], 6, 1700485571);
+    d = ii(d, a, b, c, k[3], 10, -1894986606);
+    c = ii(c, d, a, b, k[10], 15, -1051523);
+    b = ii(b, c, d, a, k[1], 21, -2054922799);
+    a = ii(a, b, c, d, k[8], 6, 1873313359);
+    d = ii(d, a, b, c, k[15], 10, -30611744);
+    c = ii(c, d, a, b, k[6], 15, -1560198380);
+    b = ii(b, c, d, a, k[13], 21, 1309151649);
+    a = ii(a, b, c, d, k[4], 6, -145523070);
+    d = ii(d, a, b, c, k[11], 10, -1120210379);
+    c = ii(c, d, a, b, k[2], 15, 718787259);
+    b = ii(b, c, d, a, k[9], 21, -343485551);
+
+    x[0] = add32(a, x[0]); x[1] = add32(b, x[1]);
+    x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+  }
+  function blk(bytes, off) {
+    const k = [];
+    for (let i = 0; i < 16; i++) {
+      const j = off + i * 4;
+      k[i] = (bytes[j] || 0) | ((bytes[j + 1] || 0) << 8) |
+             ((bytes[j + 2] || 0) << 16) | ((bytes[j + 3] || 0) << 24);
+    }
+    return k;
+  }
+  function utf8Bytes(str) {
+    const out = [];
+    for (let i = 0; i < str.length; i++) {
+      let c = str.charCodeAt(i);
+      if (c < 0x80) out.push(c);
+      else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+      else if (c >= 0xd800 && c < 0xdc00) {
+        const c2 = str.charCodeAt(++i);
+        c = 0x10000 + (((c & 0x3ff) << 10) | (c2 & 0x3ff));
+        out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 0x3f), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+      } else out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+    return out;
+  }
+  const hexByte = v => ("0" + (v & 0xff).toString(16)).slice(-2);
+
+  return function md5hex(str) {
+    const bytes = utf8Bytes(str);
+    const n = bytes.length;
+    const padded = bytes.slice();
+    padded.push(0x80);
+    while (padded.length % 64 !== 56) padded.push(0);
+    const bits = n * 8;
+    padded.push(bits & 0xff, (bits >>> 8) & 0xff, (bits >>> 16) & 0xff, (bits >>> 24) & 0xff, 0, 0, 0, 0);
+
+    const x = [1732584193, -271733879, -1732584194, 271733878];
+    for (let i = 0; i < padded.length; i += 64) cycle(x, blk(padded, i));
+    return hexByte(x[0]) + hexByte(x[0] >> 8) + hexByte(x[0] >> 16) + hexByte(x[0] >>> 24) +
+           hexByte(x[1]) + hexByte(x[1] >> 8) + hexByte(x[1] >> 16) + hexByte(x[1] >>> 24) +
+           hexByte(x[2]) + hexByte(x[2] >> 8) + hexByte(x[2] >> 16) + hexByte(x[2] >>> 24) +
+           hexByte(x[3]) + hexByte(x[3] >> 8) + hexByte(x[3] >> 16) + hexByte(x[3] >>> 24);
+  };
+})();
+
+/* =====================================================================
+ * 1. 分词 —— 镜像 src/retrieval/tokenizer.py
+ *    注意：Python 侧未安装 jieba，走的是「字符 unigram + bigram」降级分支，
+ *    本 JS 移植与之保持一致，因此检索排序与后端完全可复现。
+ * ===================================================================== */
+/* 保护模式：实体必须先整体摘出，否则被字符级分词切开就再也拼不回来。
+   三个坑与 Python 侧完全一致，改一侧必须同步另一侧：
+     ① 大小写 —— tokenize 先 toLowerCase，模式里写死大写会全部失配
+     ② 词边界 —— \b 在 Python 里是 Unicode 语义（汉字算词字符）、在 JS 里是 ASCII 语义，
+        用 ASCII 类的否定环视才会两边一致
+     ③ "DB33/ 2169-2018" 斜杠后没有 T，T/Z 必须可选 */
+/* 罗马数字归一化：语料写"Ⅲ类"，用户敲"III类"，是两套字符却指同一件事。
+   不归一化则两边零重合；而归一化前 ASCII 的 i/i/i 在中文文本里是罕见字符，
+   引入 IDF 后会霸占查询向量（实测把正确条文挤出向量前 20）。 */
+const ROMAN_UPPER = "ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ";
+const ROMAN_LOWER = "ⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹ";
+const ROMAN_ASCII = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
+const ROMAN_MAP = {};
+for (let ri = 0; ri < ROMAN_ASCII.length; ri++) {
+  ROMAN_MAP[ROMAN_UPPER[ri]] = ROMAN_ASCII[ri];
+  ROMAN_MAP[ROMAN_LOWER[ri]] = ROMAN_ASCII[ri];
+}
+const ROMAN_RE = /[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹ]/g;
+const PROTECT_PATTERNS = [
+  /(?<![A-Za-z0-9])(?:GB|HJ|DB\d{2}|GBZ)\s*(?:\/\s*(?:T|Z)?)?\s*\d+(?:\.\d+)?\s*[-–—]\s*\d{4}/gi,
+  /(?<![A-Za-z0-9])(?:PM2\.5|PM10|PM|NOx|SO2|NO2|CO2|O3|CODcr|COD|BOD5|BOD|NH3-N|TOC|TSP|VOCs)(?![A-Za-z0-9])/gi,
+  /\d+(?:\.\d+)?\s*(?:mg\/L|mg\/m3|ug\/m3|dB\(A\)|dB|t\/a|万t\/a)/gi,
+  /[ivx]{1,4}类|\d+类/gi
+];
+function spansOf(text) {
+  const found = [];
+  PROTECT_PATTERNS.forEach(pat => {
+    pat.lastIndex = 0;
+    let m;
+    while ((m = pat.exec(text)) !== null) {
+      if (!m[0].length) { pat.lastIndex++; continue; }
+      found.push([m.index, m.index + m[0].length, m[0]]);
+    }
+  });
+  found.sort((a, b) => a[0] - b[0] || (b[1] - b[0]) - (a[1] - a[0]));
+  const out = []; let end = -1;
+  for (const [s, e, g] of found) if (s >= end) { out.push([s, e, g]); end = e; }
+  return out;
+}
+function baseTokenize(seg) {
+  if (!seg.trim()) return [];
+  const clean = seg.replace(/\s+/g, "");
+  if (!clean) return [];
+  const toks = clean.split("");
+  for (let i = 0; i < clean.length - 1; i++) toks.push(clean.slice(i, i + 2));
+  return toks;
+}
+function tokenize(text, forQuery) {
+  text = text.toLowerCase().replace(/μ/g, "u").replace(ROMAN_RE, ch => ROMAN_MAP[ch]);
+  const toks = []; let pos = 0;
+  spansOf(text).forEach(span => {
+    toks.push.apply(toks, baseTokenize(text.slice(pos, span[0])));
+    toks.push(span[2].replace(/\s+/g, ""));   // 实体整体成词，压掉内部空白
+    pos = span[1];
+  });
+  toks.push.apply(toks, baseTokenize(text.slice(pos)));
+  return toks.filter(t => t && t.trim());
+}
+function normalizeQuery(q) {
+  const map = { "０":"0","１":"1","２":"2","３":"3","４":"4","５":"5","６":"6","７":"7","８":"8","９":"9",
+                "（":"(","）":")","－":"-","—":"-","～":"~" };
+  q = q.replace(/[０-９（）－—～]/g, ch => map[ch]);
+  q = q.replace(/[—–]/g, "-");
+  return q.replace(/\s+/g, " ").trim();
+}
+
+/* =====================================================================
+ * 2. 查询理解 —— 镜像 hybrid.py
+ * ===================================================================== */
+const POLLUTANT_ALIASES = {
+  "COD": ["cod","codcr","化学需氧量"], "NH3-N": ["氨氮","nh3-n","氨氮（以n计）"],
+  "TP": ["总磷","tp"], "TN": ["总氮","tn"], "PM10": ["pm10","可吸入颗粒物"],
+  "PM2.5": ["pm2.5","细颗粒物"], "SO2": ["so2","二氧化硫"], "NO2": ["no2","二氧化氮"],
+  "石油类": ["石油类","石油"], "噪声": ["噪声","厂界噪声","laeq"]
+};
+const MEDIUM_ALIASES = {
+  water_surface: ["地表水","地表水体","江河","湖泊","水库"],
+  water_wastewater: ["废水","污水","排放口","污水处理厂","排放标准"],
+  air_ambient: ["环境空气","大气环境","空气质量"],
+  air_emission: ["废气","有组织排放","无组织排放"],
+  noise: ["噪声","声环境"], solid_waste: ["固废","固体废物","危险废物","危废","贮存"],
+  eia: ["环评","环境影响评价","报告书","报告表","登记表"],
+  monitoring: ["自行监测","监测方案","监测点位"]
+};
+const ROMAN_NORM = { "Ⅰ":"i","Ⅱ":"ii","Ⅲ":"iii","Ⅳ":"iv","Ⅴ":"v","ⅰ":"i","ⅱ":"ii","ⅲ":"iii","ⅳ":"iv","ⅴ":"v" };
+const ROMAN_TO_WATER = { i:"Ⅰ", ii:"Ⅱ", iii:"Ⅲ", iv:"Ⅳ", v:"Ⅴ" };
+const RE_WATER_GRADE = /(iii|ii|iv|i|v)\s*类/g;
+const RE_NOISE_GRADE = /([0-4])\s*类/g;
+const RE_DISCHARGE_GRADE = /([一二三]|[1-3])\s*级/g;
+const DISCHARGE_MAP = { "一":"一级","二":"二级","三":"三级","1":"一级","2":"二级","3":"三级" };
+const REGIONS = ["浙江省","江苏省","广东省","上海市","北京市","杭州市"];
+/* 受纳水体 → 排放等级（镜像 hybrid.py 的同名表）。
+ * GB 8978-1996 §4.2 按受纳水体定级：Ⅲ类水域 → 一级，Ⅳ/Ⅴ类 → 二级，
+ * 纳入城镇排水系统 → 三级。少了这层翻译，"排入Ⅲ类水域执行几级标准"就只能
+ * 在一级/二级/三级里按限值大小猜，容易给出 500 而不是 100。 */
+const SURFACE_TO_DISCHARGE = { "Ⅰ":"一级","Ⅱ":"一级","Ⅲ":"一级","Ⅳ":"二级","Ⅴ":"二级" };
+const RE_SEWER_DISCHARGE = /(纳管|下水道|市政管网|城镇排水系统|排入城镇)/;
+/* 时期条件（镜像 hybrid.py 的 _RE_PERIOD 与 registry.py 的 _RE_COND_PERIOD）。
+ * 同一标准对同一污染物可能给"常规时段"和"11月1日至次年3月31日"两条限值，
+ * 取哪条取决于问题有没有限定时期，与限值严格程度无关。 */
+const RE_PERIOD = /(\d{1,2}\s*月|冬季|冬期|春季|夏季|秋季|汛期|非汛期|枯水期|丰水期)/;
+function condHasPeriod(condition) { return RE_PERIOD.test(condition || ""); }
+const INDUSTRY_ALIASES = {
+  "城镇污水处理厂": ["城镇污水处理厂","城市污水处理厂","污水处理厂","污水厂"],
+  "工业": ["工业废水","工业企业","工业"],
+  "危险废物": ["危险废物","危废"],
+  "建设项目": ["建设项目","项目"]
+};
+function allMatches(re, s, g) { const out = []; re.lastIndex = 0; let m; while ((m = re.exec(s)) !== null) { out.push(g ? m[g] : m[0]); if (re.lastIndex === m.index) re.lastIndex++; } return out; }
+
+function extractGrades(low, media) {
+  const grades = [];
+  const push = g => { if (g && grades.indexOf(g) < 0) grades.push(g); };
+  const isNoise = media.indexOf("noise") >= 0, isSurface = media.indexOf("water_surface") >= 0,
+        isWaste = media.indexOf("water_wastewater") >= 0, noMedia = media.length === 0;
+  if (isNoise) allMatches(RE_NOISE_GRADE, low, 1).forEach(m => push(m + "类"));
+  if (isSurface || noMedia) allMatches(RE_WATER_GRADE, low, 1).forEach(m => push(ROMAN_TO_WATER[m.toLowerCase()]));
+  if (isWaste || noMedia) allMatches(RE_DISCHARGE_GRADE, low, 1).forEach(m => push(DISCHARGE_MAP[m]));
+  return grades;
+}
+/* 与 hybrid.py 的 infer_discharge_grade 逐行对应 */
+function inferDischargeGrade(q, s) {
+  const explicit = s.grades.find(g => /级$/.test(g)) || "";
+  if (explicit) return explicit;
+  if (s.is_comparison) return "";
+  if (!(s.media.indexOf("water_wastewater") >= 0 || s.media.indexOf("air_emission") >= 0)) return "";
+  if (RE_SEWER_DISCHARGE.test(q)) return "三级";
+  for (const g of s.grades) if (SURFACE_TO_DISCHARGE[g]) return SURFACE_TO_DISCHARGE[g];
+  return "";
+}
+
+/* ⚠️ 词边界必须显式写成「非 Unicode 词字符」的否定环视，不能直接用 \b。
+ * Python 的 re 默认是 Unicode 语义，汉字算词字符，因此 "的GB 3838" 里
+ * "的" 与 "G" 之间**没有**词边界，标准号不会被匹配；
+ * 而 JS 的 \b 是 ASCII 语义，汉字不算词字符，同样的文本会被误判出一个标准号，
+ * 凭空多插入一次时效性校验步骤。这个差异只在中文与标识符相邻时暴露，
+ * 靠肉眼很难发现，是一致性测试抓出来的。
+ */
+const RE_STD_QUERY = /(?<![\p{L}\p{N}_])(?:GB|HJ|DB\d{2})\s*\/?\s*T?\s*\d+(?:\.\d+)?\s*-?\s*\d{0,4}/giu;
+
+function understand(query) {
+  const q = normalizeQuery(query);
+  const low = q.toLowerCase().replace(/[ⅠⅡⅢⅣⅤⅰⅱⅲⅳⅴ]/g, ch => ROMAN_NORM[ch]);
+  const s = { raw:q, std_refs:[], pollutants:[], media:[], grades:[], discharge_grade:"",
+              period_stated:false, regions:[], industry:[],
+              wants_limit:false, wants_eia_class:false, wants_status:false, is_comparison:false,
+              as_of_date:"2026-09-14" };
+  allMatches(RE_STD_QUERY, q).forEach(m => s.std_refs.push(m.replace(/\s+/g, " ").toUpperCase()));
+  for (const k in POLLUTANT_ALIASES)
+    if (POLLUTANT_ALIASES[k].some(a => low.indexOf(a.toLowerCase()) >= 0)) s.pollutants.push(k);
+  for (const k in MEDIUM_ALIASES)
+    if (MEDIUM_ALIASES[k].some(a => q.indexOf(a) >= 0)) s.media.push(k);
+  s.grades = extractGrades(low, s.media);
+  REGIONS.forEach(r => { if (q.indexOf(r) >= 0) s.regions.push(r); });
+  Object.keys(INDUSTRY_ALIASES)
+    .sort((a, b) => Math.max(...INDUSTRY_ALIASES[b].map(x => x.length)) - Math.max(...INDUSTRY_ALIASES[a].map(x => x.length)))
+    .forEach(k => { if (INDUSTRY_ALIASES[k].some(a => q.indexOf(a) >= 0)) s.industry.push(k); });
+  s.wants_limit = s.pollutants.length > 0 || /(限值|标准值|多少|不得超过|最高允许)/.test(q);
+  s.wants_eia_class = /(报告书|报告表|登记表|环评类别|要不要做环评|环评吗|需不需要环评|要不要环评|做环评)/.test(q);
+  s.wants_status = /(现行|最新|废止|失效|替代|还有效)/.test(q);
+  s.is_comparison = /(区别|对比|差异|不同|一样吗|哪个更|vs)/.test(q);
+  s.discharge_grade = inferDischargeGrade(q, s);
+  s.period_stated = RE_PERIOD.test(q);
+  return s;
+}
+
+/* =====================================================================
+ * 3. BM25 + 哈希向量 + RRF + 重排 —— 镜像 bm25.py / vector.py / hybrid.py
+ * ===================================================================== */
+function buildBM25(corpus) {
+  const docIds = [], docs = [], df = {}, docLen = [];
+  corpus.forEach(([id, text]) => {
+    const toks = tokenize(text, false), tf = {};
+    toks.forEach(t => tf[t] = (tf[t] || 0) + 1);
+    docIds.push(id); docs.push(tf); docLen.push(toks.length);
+    Object.keys(tf).forEach(t => df[t] = (df[t] || 0) + 1);
+  });
+  const N = docIds.length, avgdl = docLen.reduce((a, b) => a + b, 0) / (N || 1);
+  const k1 = 1.5, b = 0.75;
+  const idf = t => { const n = df[t] || 0; return Math.log(1 + (N - n + 0.5) / (n + 0.5)); };
+  return function search(query, topK) {
+    const qt = tokenize(query, true);
+    if (!qt.length || !N) return [];
+    const scores = {};
+    new Set(qt).forEach(t => {
+      if (!(t in df)) return;
+      const w = idf(t), qw = qt.filter(x => x === t).length / qt.length;
+      docs.forEach((tf, i) => {
+        const f = tf[t] || 0; if (!f) return;
+        const denom = f + k1 * (1 - b + b * docLen[i] / (avgdl || 1));
+        scores[i] = (scores[i] || 0) + w * (f * (k1 + 1)) / denom * (0.5 + qw);
+      });
+    });
+    const ranked = Object.keys(scores).map(i => [+i, scores[i]]).sort((x, y) => y[1] - x[1]).slice(0, topK);
+    if (!ranked.length) return [];
+    const hi = ranked[0][1] || 1.0;
+    return ranked.map(([i, sc]) => [docIds[i], sc / hi]);
+  };
+}
+function hashVec(tokens, dim, idf) {
+  const vec = new Array(dim).fill(0);
+  if (!tokens.length) return vec;
+  const tf = {}; tokens.forEach(t => tf[t] = (tf[t] || 0) + 1);
+  const n = tokens.length;
+  for (const t in tf) {
+    const c = tf[t];
+    const h = parseInt(MD5(t).slice(0, 8), 16);
+    const idx = (h >>> 0) % dim;
+    const sign = ((h >>> 31) & 1) ? 1.0 : -1.0;
+    /* idf 与 bm25 同公式；语料里没有的查询词权重记 0，不占归一化的份额 */
+    const wIdf = idf ? (idf[t] || 0) : 1.0;
+    vec[idx] += sign * (1 + Math.log(c)) * (c < n ? Math.log(1 + n / (1 + c)) : 1.0) * wIdf;
+  }
+  const norm = Math.sqrt(vec.reduce((a, v) => a + v * v, 0));
+  return norm ? vec.map(v => v / norm) : vec;
+}
+function buildVector(corpus) {
+  const dim = CFG.EMBED_DIM;
+  const docIds = corpus.map(c => c[0]);
+  /* IDF 必须由整个语料统计，且文档侧与查询侧共用同一张表，否则两侧权重不同源 */
+  const toks = corpus.map(c => tokenize(c[1], false));
+  const df = {};
+  toks.forEach(ts => { new Set(ts).forEach(t => df[t] = (df[t] || 0) + 1); });
+  const N = corpus.length;
+  const idf = {};
+  Object.keys(df).forEach(t => {
+    const n = df[t];
+    idf[t] = Math.log(1 + (N - n + 0.5) / (n + 0.5));
+  });
+  const vecs = toks.map(ts => hashVec(ts, dim, idf));
+  return function search(query, topK) {
+    const qv = hashVec(tokenize(query, true), dim, idf);
+    const sims = vecs.map((v, i) => { let s = 0; for (let k = 0; k < dim; k++) s += qv[k] * v[k]; return [docIds[i], s]; })
+      .sort((a, b) => b[1] - a[1]).slice(0, topK).filter(x => x[1] > 0);
+    if (!sims.length) return [];
+    const hi = sims[0][1] || 1.0;
+    return sims.map(([d, s]) => [d, s / hi]);
+  };
+}
+
+const CLAUSE_MAP = {}; IDX.clauses.forEach(c => CLAUSE_MAP[c.clause_id] = c);
+const CORPUS = IDX.clauses.map(c => [c.clause_id, c.searchable_text]);
+const bm25Search = buildBM25(CORPUS);
+const vecSearch = buildVector(CORPUS);
+
+function passesFilter(c, s) {
+  if (s.media.length && !c.medium.some(m => s.media.indexOf(m) >= 0)) return false;
+  if (s.regions.length) {
+    const regions = c.region || [];
+    if (regions.length && !regions.some(r => s.regions.indexOf(r) >= 0) && regions.indexOf("全国") < 0) return false;
+  }
+  return true;
+}
+function rrf(lists) {
+  const fused = {};
+  lists.forEach(list => list.forEach(([docId], i) => {
+    fused[docId] = (fused[docId] || 0) + 1.0 / (CFG.RRF_K + i + 1);
+  }));
+  return fused;
+}
+function rerank(fused, s) {
+  const ids = Object.keys(fused);
+  if (!ids.length) return [];
+  const mx = Math.max(...ids.map(i => fused[i]));
+  return ids.map(cid => {
+    const c = CLAUSE_MAP[cid];
+    let sc = fused[cid] / mx, boost = 0;
+    if (s.std_refs.length) {
+      const normId = c.std_id.toUpperCase().replace(/\s/g, "");
+      if (s.std_refs.some(r => r.replace(/\s/g, "").indexOf(normId) >= 0 || normId.indexOf(r.replace(/\s/g, "")) >= 0)) boost += 0.45;
+    }
+    if (s.wants_limit && c.clause_type === "limit") boost += 0.18;
+    if (s.wants_eia_class && (c.clause_type === "management" || c.clause_type === "method")) boost += 0.10;
+    if (s.grades.length && s.grades.some(g => c.text.indexOf(g) >= 0)) boost += 0.10;
+    /* 污染物命中：一张表里每行只是一个污染物，表标题/单位/等级说明逐字相同，
+       纯文本相似度分不出"是哪一行"（实测问 COD 时氨氮行与之并列）。 */
+    if (s.pollutants.length) {
+      const names = [];
+      s.pollutants.forEach(p => {
+        const al = POLLUTANT_ALIASES[p];
+        (al && al.length ? al : [p.toLowerCase()]).forEach(a => names.push(a));
+      });
+      const tl = c.text.toLowerCase();
+      if (names.some(n => n && tl.indexOf(n) >= 0)) boost += 0.15;
+    }
+    /* 行业不匹配：与 resolve_applicable_standard 同一口径（该规则在 tools 层已修过），
+       让召回排序和裁决结论不要互相打架。 */
+    if (s.industry.length) {
+      const std = STD_MAP[c.std_id] || {};
+      const appInd = ((std.applicability || {}).industry || []).map(String);
+      const generic = appInd.some(x => x.indexOf("通用") >= 0 || x.indexOf("全国") >= 0);
+      const hit = s.industry.some(k => appInd.some(x => x.indexOf(k) >= 0));
+      if (appInd.length && !generic && !hit) boost -= 0.15;
+    }
+    if (c.std_status === "active") boost += 0.12; else if (c.std_status === "superseded") boost -= 0.18;
+    if (s.regions.length && c.std_level === "local" && (c.region || []).some(r => s.regions.indexOf(r) >= 0)) boost += 0.25;
+    return [cid, sc + boost];
+  }).sort((a, b) => b[1] - a[1]);
+}
+function retrieve(query, topN, slots) {
+  const s = slots || understand(query);
+  topN = topN || CFG.RERANK_TOP_N;
+  const bm = bm25Search(query, CFG.BM25_TOP_K).filter(([d]) => passesFilter(CLAUSE_MAP[d], s));
+  const vc = vecSearch(query, CFG.VECTOR_TOP_K).filter(([d]) => passesFilter(CLAUSE_MAP[d], s));
+  let ranked = rerank(rrf([bm, vc]), s).slice(0, Math.max(topN, CFG.FUSION_TOP_K)).slice(0, topN);
+  ranked = ranked.filter(([, sc]) => sc >= CFG.MIN_SCORE_THRESHOLD);
+  return [ranked.map(([cid, sc]) => {
+    const c = Object.assign({}, CLAUSE_MAP[cid]);
+    c.score = Math.round(sc * 1e4) / 1e4;
+    c.is_stale = c.std_status === "superseded";
+    c.replacement = c.is_stale ? ((c.std_replaced_by || [])[0] || null) : null;
+    return c;
+  }), s];
+}
+
+/* =====================================================================
+ * 4. 工具层 —— 镜像 src/tools/registry.py
+ * ===================================================================== */
+const STD_MAP = {}; IDX.standards.forEach(s => STD_MAP[s.std_id] = s);
+const LIMITS = IDX.limits;
+
+const UNIT_TO_BASE = { "concentration_water|mg/l":1, "concentration_water|ug/l":0.001,
+  "concentration_water|g/l":1000, "concentration_air|mg/m3":1000, "concentration_air|ug/m3":1 };
+const UNIT_FAMILY = { "mg/l":"concentration_water","ug/l":"concentration_water","g/l":"concentration_water",
+  "mg/m3":"concentration_air","ug/m3":"concentration_air","db(a)":"level","db":"level" };
+const unifyUnit = u => (u || "").replace(/μ/g, "u").replace(/³/g, "3").toLowerCase().trim();
+function convert(value, fromU, toU) {
+  const f = unifyUnit(fromU), t = unifyUnit(toU);
+  if (f === t) return value;
+  const fam = UNIT_FAMILY[f];
+  if (!fam || UNIT_FAMILY[t] !== fam || fam === "level")
+    throw new Error("单位不可换算: " + fromU + " -> " + toU + "（分贝为对数单位，不可线性换算）");
+  return value * UNIT_TO_BASE[fam + "|" + f] / UNIT_TO_BASE[fam + "|" + t];
+}
+
+const Tools = {
+  call_log: [],
+  log(name, args, ok, n) { this.call_log.push({ tool:name, args:args, ok:ok, n_result:n || 0 }); },
+
+  search_standard(query, medium, grade, region, top_n) {
+    medium = medium || ""; grade = grade || ""; region = region || ""; top_n = top_n || 6;
+    const slots = understand(query);
+    if (medium) slots.media = [medium];
+    if (region) slots.regions = [region];
+    if (grade) slots.grades = [grade];
+    const [results] = retrieve(query, top_n, slots);
+    this.log("search_standard", { query:query, medium:medium }, results.length > 0, results.length);
+    return { query:query, slots:slots, hits: results.map(c => ({
+      clause_id:c.clause_id, std_id:c.std_id, clause_no:c.clause_no, std_title:c.std_title,
+      clause_type:c.clause_type, text:c.text, score:c.score, std_status:c.std_status,
+      is_stale:c.is_stale, replacement:c.replacement, effective_date:c.std_effective_date })) };
+  },
+
+  get_clause(clause_id) {
+    const c = CLAUSE_MAP[clause_id];
+    this.log("get_clause", { clause_id:clause_id }, !!c, c ? 1 : 0);
+    if (!c) return { error:"条文不存在: " + clause_id, hint:"先用 search_standard 确认条文号" };
+    return { clause_id:c.clause_id, std_id:c.std_id, clause_no:c.clause_no, path:c.path,
+      clause_type:c.clause_type, text:c.text, refs:c.refs,
+      std_status:c.std_status, std_replaced_by:c.std_replaced_by };
+  },
+
+  check_standard_status(std_id, as_of) {
+    as_of = as_of || "2026-09-14";
+    const s = STD_MAP[std_id];
+    if (!s) {
+      const digits = std_id.replace(/[^0-9]/g, "");
+      const cands = Object.keys(STD_MAP).filter(k => digits && k.replace(/[^0-9]/g, "").indexOf(digits) >= 0);
+      if (cands.length === 1) {
+        const out = this.check_standard_status(cands[0], as_of);
+        out.resolved_from = std_id; return out;
+      }
+      this.log("check_standard_status", { std_id:std_id }, cands.length > 0, cands.length);
+      if (!cands.length) return { error:"未收录标准号 " + std_id, candidates:[], hint:"确认标准号拼写，或先用 search_standard 检索" };
+      return { std_id:std_id, resolved:false, ambiguous:true,
+        candidates: cands.slice().sort().map(c => ({ std_id:c, title:STD_MAP[c].title || "",
+          status:STD_MAP[c].status, effective_date:STD_MAP[c].effective_date || "",
+          replaced_by:STD_MAP[c].replaced_by || [] })),
+        hint:"该标准号存在多个版本，请认准 status=active 的现行版本" };
+    }
+    this.log("check_standard_status", { std_id:std_id }, true, 1);
+    return { std_id:s.std_id, title:s.title, status:s.status, is_current:s.status === "active",
+      publish_date:s.publish_date, effective_date:s.effective_date, as_of:as_of,
+      replaced_by:s.replaced_by, replaces:s.replaces,
+      warning: s.status === "superseded"
+        ? "该标准已被替代，禁止用于新建项目环评/验收，请改用 " + (s.replaced_by || []).join("、") : null };
+  },
+
+  lookup_limit(pollutant, medium, grade, condition, region, prefer_period) {
+    medium = medium || ""; grade = grade || ""; condition = condition || ""; region = region || "";
+    let rows = medium ? LIMITS.filter(l => l.medium === medium) : LIMITS.slice();
+    const key = pollutant.toLowerCase();
+    rows = rows.filter(l => l.pollutant.toLowerCase().indexOf(key) >= 0 ||
+      (l.pollutant_alias || []).some(a => a.toLowerCase().indexOf(key) >= 0));
+    if (grade) { const g = rows.filter(l => l.grade.indexOf(grade) >= 0); rows = g.length ? g : rows; }
+    if (condition) { const c = rows.filter(l => l.condition.indexOf(condition) >= 0); rows = c.length ? c : rows; }
+    /* 时期取舍排在"属地优先"之前 —— 用限值严格程度替代时期匹配只是蒙对率不稳定的启发式 */
+    rows = rows.slice().sort((a, b) =>
+      (condHasPeriod(a.condition) === !!prefer_period ? 0 : 1) -
+      (condHasPeriod(b.condition) === !!prefer_period ? 0 : 1));
+    if (region) {
+      const hasRegion = id => ((STD_MAP[id] || {}).applicability || {}).region || [];
+      rows = rows.slice().sort((a, b) => (hasRegion(a.std_id).indexOf(region) >= 0 ? 0 : 1) - (hasRegion(b.std_id).indexOf(region) >= 0 ? 0 : 1));
+    }
+    rows.forEach(l => { l._std_title = (STD_MAP[l.std_id] || {}).title || ""; l._is_current = (STD_MAP[l.std_id] || {}).status === "active"; });
+    this.log("lookup_limit", { pollutant:pollutant, medium:medium, grade:grade }, rows.length > 0, rows.length);
+    if (!rows.length) return { error:"未匹配到限值记录", hint:"尝试放宽 grade/condition，或先用 search_standard 定位标准号再查表" };
+    return { pollutant:pollutant, medium:medium, region:region, count:rows.length,
+      records: rows.map(l => ({ std_id:l.std_id, std_title:l._std_title, table:l.table, grade:l.grade,
+        condition:l.condition, value:l.value, value_text:l.value_text,
+        value_display:l.value_display || "", unit:l.unit, is_current:l._is_current })),
+      notice:"以上为库内记录，引用前请用 check_standard_status 复核标准时效性" };
+  },
+
+  judge_compliance(measured, pollutant, medium, grade, unit, condition, region, margin, prefer_period) {
+    grade = grade || ""; unit = unit || ""; condition = condition || ""; margin = margin || 0;
+    const lk = this.lookup_limit(pollutant, medium, grade, condition, region, prefer_period);
+    if (lk.error) return lk;
+    const rec = lk.records[0];
+    if (rec.value === null || rec.value === undefined)
+      return { error: rec.std_id + " 该项限值为非数值表述（" + rec.value_text + "），无法自动判定", raw:rec };
+    const limitVal = Number(rec.value);
+    let m;
+    try { m = unit ? convert(measured, unit, rec.unit) : measured; }
+    catch (e) { return { error:e.message }; }
+    const threshold = margin ? limitVal * (1 - margin) : limitVal;
+    const compliant = m <= threshold;
+    return { verdict: compliant ? "达标" : "超标", compliant:compliant,
+      standard: rec.std_id + " " + rec.table + "（" + rec.grade + "，" + rec.condition + "）",
+      limit:limitVal, limit_unit:rec.unit,
+      limit_display: rec.value_display || String(limitVal), measured_normalized: Math.round(m * 1e4) / 1e4,
+      measured_input:measured, input_unit: unit || rec.unit,
+      exceedance_ratio: Math.round((m / limitVal - 1) * 1e4) / 1e4, margin_applied:margin,
+      caveat:"判定仅基于库内限值记录；实际执法判定还需考虑监测方法、采样频次与数据有效性规定" };
+  },
+
+  trace_standard_chain(std_id) {
+    let seen = {}, fwd = [], cur = std_id;
+    while (cur && !seen[cur]) {
+      seen[cur] = 1;
+      const nxt = ((STD_MAP[cur] || {}).replaced_by || []).filter(n => STD_MAP[n]);
+      if (!nxt.length) break;
+      fwd.push({ from:cur, to:nxt[0] }); cur = nxt[0];
+    }
+    let seenB = {}, back = []; cur = std_id;
+    while (cur && !seenB[cur]) {
+      seenB[cur] = 1;
+      const prev = ((STD_MAP[cur] || {}).replaces || []).filter(p => STD_MAP[p]);
+      if (!prev.length) break;
+      back.push({ from:prev[0], to:cur }); cur = prev[0];
+    }
+    this.log("trace_standard_chain", { std_id:std_id }, true, fwd.length + back.length);
+    return { std_id:std_id, current_in_line: cur || std_id, ancestors: back.reverse(), descendants: fwd,
+      note: (fwd.length || back.length) ? "链条末端即为当前应引用的版本" : "该标准无已知替代关系" };
+  },
+
+  resolve_applicable_standard(pollutant, medium, region, industry, grade, prefer_period) {
+    medium = medium || ""; region = region || ""; industry = industry || ""; grade = grade || "";
+    prefer_period = !!prefer_period;
+    const cands = this.lookup_limit(pollutant, medium, grade, "", region, prefer_period).records || [];
+    if (!cands.length) return { error:"无候选标准" };
+    const rank = rec => {
+      const s = STD_MAP[rec.std_id] || {}, lvl = s.level || "national", app = s.applicability || {};
+      const appInd = (app.industry || []).map(String);
+      const isGeneric = appInd.some(x => x.indexOf("通用") >= 0 || x.indexOf("全国") >= 0);
+      const isLocalHit = !!region && (app.region || []).indexOf(region) >= 0;
+      const indHit = !!industry && appInd.some(x => x.indexOf(industry) >= 0);
+      const indMismatch = (!industry || isGeneric || indHit) ? 0 : 1;
+      return [ s.status === "active" ? 0 : 1, indMismatch, isLocalHit ? 0 : 1,
+               (lvl === "industry" || lvl === "local") ? 0 : 1,
+               /* ⑤ 时期匹配：与查询的时期限定一致者优先 */
+               (condHasPeriod(rec.condition) === prefer_period) ? 0 : 1,
+               /* ⑥ 同分从严：限值更小者优先（写成 -value 会变成最大者优先，与"从严"相反）；
+                  缺值不能当 0，否则会排到最前，统一沉底。 */
+               (rec.value === null || rec.value === undefined) ? Infinity : Number(rec.value) ];
+    };
+    const sorted = cands.slice().sort((a, b) => {
+      const ra = rank(a), rb = rank(b);
+      for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i];
+      return 0;
+    });
+    const winner = sorted[0], ws = STD_MAP[winner.std_id] || {}, reasons = [];
+    if (ws.status === "active") reasons.push("该标准为现行有效版本");
+    if (region && ((ws.applicability || {}).region || []).indexOf(region) >= 0)
+      reasons.push(region + " 地方标准在本行政区域内优先适用");
+    if (industry) {
+      const appInd = (ws.applicability || {}).industry || [];
+      if (appInd.some(x => String(x).indexOf(industry) >= 0)) reasons.push("该标准适用对象「" + industry + "」，与问题场景一致");
+      else reasons.push("该标准为通用标准（适用对象：" + appInd.join("、") + "），覆盖「" + industry + "」场景");
+    }
+    if (sorted.length > 1) reasons.push("另有 " + (sorted.length - 1) + " 个候选标准被其覆盖，详见 candidates");
+    this.log("resolve_applicable_standard", { pollutant:pollutant, medium:medium, region:region }, true, sorted.length);
+    return { applicable: { std_id:winner.std_id, title:winner.std_title || "", grade:winner.grade,
+        condition:winner.condition, value:winner.value, value_display:winner.value_display || "",
+        unit:winner.unit },
+      reasons: reasons,
+      candidates: sorted.map(c => ({ std_id:c.std_id, grade:c.grade, condition:c.condition,
+        value:c.value, unit:c.unit, is_current:c.is_current })) };
+  },
+
+  classify_eia_category(project_type, scale) {
+    scale = scale || "";
+    const table = [
+      { cat:"污水处理及其再生利用", kw:["污水处理","污水厂"],
+        rules:[["日处理能力>=10万吨","报告书"],["日处理能力<500吨","登记表"],["其他","报告表"]] },
+      { cat:"危险废物贮存", kw:["危废贮存","危险废物贮存","暂存"],
+        rules:[["全部","报告表（依据2021年版名录相关条目）"]] },
+      { cat:"机制纸及纸板制造", kw:["造纸"], rules:[["全部","报告书"]] },
+      { cat:"餐饮服务", kw:["餐饮","饭店"], rules:[["全部","登记表"]] }
+    ];
+    const hit = table.find(t => t.kw.some(k => project_type.indexOf(k) >= 0));
+    this.log("classify_eia_category", { project_type:project_type }, !!hit, hit ? 1 : 0);
+    if (!hit) return { error:"演示表未覆盖「" + project_type + "」",
+      hint:"名录未列出的建设项目不需办理环评手续，但结论必须回到官方名录原文核对", demo_table_only:true };
+    let matched = "其他";
+    for (const [cond, res] of hit.rules) {
+      if (cond.indexOf("全部") >= 0) { matched = res; break; }
+      if (scale && cond.indexOf("日处理能力>=") === 0) {
+        const num = parseFloat(scale.replace(/[^0-9.]/g, ""));
+        if (!isNaN(num) && num >= 10 && cond.indexOf("万吨") >= 0) { matched = res; break; }
+      }
+      if (scale && cond.indexOf("日处理能力<") === 0 && scale.indexOf("吨") >= 0) matched = res;
+    }
+    return { project_type:project_type, scale:scale, matched_category:hit.cat, suggested_type:matched,
+      source_std_id:"名录-2021", demo_table_only:true,
+      must_verify:"环评类别直接决定合规成本与审批流程，结论必须回溯《名录》官方文本" };
+  }
+};
+
+/* ⚠️ 工具调用必须按「参数名」映射，不能用 Object.values() 依赖键顺序。
+ * 规划器产出的 args 只带非空字段，键序由字面量写法决定，而工具形参是固定位置。
+ * 早先直接展开 values，导致 fallback 步骤的 {query, top_n} 被投喂成
+ * search_standard(query, top_n) —— 数字落进了 medium 形参位，介质过滤随即失效、
+ * 检索返回空列表，答案退化成「未检索到依据」。这个 bug 不会报错，只会静默答错。
+ * 显式声明参数顺序，等价于 Python 的 fn(**args)。
+ */
+const TOOL_ARGS = {
+  search_standard: ["query", "medium", "grade", "region", "top_n"],
+  get_clause: ["clause_id"],
+  check_standard_status: ["std_id", "as_of"],
+  lookup_limit: ["pollutant", "medium", "grade", "condition", "region", "prefer_period"],
+  judge_compliance: ["measured", "pollutant", "medium", "grade", "unit", "condition", "region", "margin", "prefer_period"],
+  trace_standard_chain: ["std_id"],
+  resolve_applicable_standard: ["pollutant", "medium", "region", "industry", "grade", "prefer_period"],
+  classify_eia_category: ["project_type", "scale"]
+};
+function callTool(name, args) {
+  const order = TOOL_ARGS[name];
+  if (!order) throw new Error("未注册的工具: " + name);
+  return Tools[name].apply(Tools, order.map(k => args[k]));
+}
+
+/* =====================================================================
+ * 5. 编排层 —— 镜像 src/agent/loop.py
+ * ===================================================================== */
+const WATER_CLASSES = ["Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ"];
+function gradeForMedium(medium, grades) {
+  if (!grades.length) return "";
+  if (medium === "water_surface") return grades.find(g => WATER_CLASSES.indexOf(g) >= 0) || "";
+  if (medium === "water_wastewater" || medium === "air_emission") return grades.find(g => /级$/.test(g)) || "";
+  if (medium === "noise") return grades.find(g => /类$/.test(g)) || "";
+  return "";
+}
+function planOffline(query, slots) {
+  const plan = [];
+  const media = slots.media;
+  const region = slots.regions[0] || "";
+  const industry = slots.industry[0] || "";
+  slots.std_refs.slice(0, 3).forEach(r => plan.push({ tool:"check_standard_status", args:{ std_id:r } }));
+  if (slots.std_refs.length >= 2) plan.push({ tool:"trace_standard_chain", args:{ std_id:slots.std_refs[0] } });
+  if (slots.wants_status && slots.std_refs.length && !slots.wants_limit) return plan;
+  if (slots.wants_eia_class) {
+    plan.push({ tool:"classify_eia_category", args:{ project_type:query, scale:query } }); return plan;
+  }
+  if (media.length > 1 && slots.pollutants.length && slots.is_comparison) {
+    slots.pollutants.forEach(p => media.forEach(m =>
+      plan.push({ tool:"lookup_limit", args:{ pollutant:p, medium:m, grade:gradeForMedium(m, slots.grades), region:region } })));
+    plan.push({ tool:"search_standard", args:{ query:query, top_n:4 } });
+    return plan;
+  }
+  const dischargeCtx = media.some(m => m === "water_wastewater" || m === "air_emission");
+  let targetMedium = dischargeCtx ? (media.indexOf("water_wastewater") >= 0 ? "water_wastewater" : "air_emission")
+                                  : (media.length === 1 ? media[0] : "");
+  let grade = "";
+  /* 排放等级优先取"受纳水体翻译结果"，再退回字面等级（镜像 loop.py）。
+     顺序反了就会退化为按限值严格程度猜等级。 */
+  if (dischargeCtx) grade = slots.discharge_grade || (slots.grades.find(g => /级$/.test(g)) || "");
+  else if (slots.grades.length) grade = slots.grades[0];
+  if (media.length > 1 && !dischargeCtx) { targetMedium = ""; grade = ""; }
+
+  if (slots.wants_limit && slots.pollutants.length) {
+    slots.pollutants.forEach(p => plan.push({ tool:"lookup_limit",
+      args:{ pollutant:p, medium:targetMedium, grade:grade, region:region,
+             prefer_period:slots.period_stated } }));
+    if (targetMedium && (region || dischargeCtx || industry || media.length > 1))
+      plan.push({ tool:"resolve_applicable_standard",
+        args:{ pollutant:slots.pollutants[0], medium:targetMedium, region:region, industry:industry,
+               grade:grade, prefer_period:slots.period_stated } });
+    plan.push({ tool:"search_standard", args:{ query:query, medium:targetMedium, top_n:4 } });
+    return plan;
+  }
+  plan.push({ tool:"search_standard", args:{ query:query, top_n:6 } });
+  return plan;
+}
+
+/* 等级措辞 —— 与 Python 的 _grade_phrase 对齐。
+ * 等级取值跨三套体系（Ⅲ / 一级 / 2类），还有「浙江地标」这类自定义标签，
+ * 用二分法猜后缀会产出「2类类」「浙江地标类」这种读不通的文本。 */
+function gradePhrase(grade) {
+  if (!grade) return "";
+  if (/级$/.test(grade)) return grade + "标准";
+  if (/类$/.test(grade)) return grade;
+  if (["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ"].indexOf(grade) >= 0) return grade + "类";
+  return grade;
+}
+
+/* 数值展示统一约定 —— 与 Python 的 _num 对齐。
+ * JSON 里的 5.0 在 Python 是 float（f"{5.0}" -> "5.0"），在 JS 是 number
+ * （String(5) -> "5"），不统一就会渲染出两种文本。 */
+function num(v) {
+  if (v === null || v === undefined) return "None";
+  return String(v);
+}
+
+/* 引用条目展示格式 —— 必须与 Python 的 _fmt_citation 完全一致。
+ * 早先两侧都是 f-string/字符串拼接，Python 侧在 table 后多留了一个空格，
+ * 而 rstrip() 只去行尾空格，结果输出成「表1 ，Ⅲ」。一致性测试按字节比对时
+ * 立刻暴露了这一处差异，顺带把两侧统一成了同一个格式化函数。 */
+function fmtCitation(c) {
+  let s = "[" + c.idx + "] " + c.std_id;
+  if (c.table) s += " " + c.table;
+  if (c.clause_no && !c.table) s += " 第" + c.clause_no + "条";
+  if (c.grade) s += "（" + c.grade + "）";
+  return s;
+}
+
+function compose(query, slots, observations, evidenceClauses, limitsFound, staleWarnings) {  const citations = [], parts = [];
+  const staleList = Array.from(new Set(staleWarnings)).sort();
+  if (staleList.length)
+    parts.push("【时效性提示】" + staleList.join("；") + "。以下如涉及该标准，请以替代版本为准。");
+
+  const verdict = (observations.find(o => o.tool === "resolve_applicable_standard" && o.output.applicable) || {}).output;
+  if (verdict) {
+    const a = verdict.applicable, idx = citations.length + 1;
+    citations.push({ idx:idx, std_id:a.std_id, table:"", clause_no:"", grade:a.grade || "", value:a.value, unit:a.unit || "" });
+    parts.push("适用优先级裁决：应适用 " + (a.title || "") + "（" + a.std_id + "）" + (a.grade || "") +
+      "，限值 " + (a.value_display || num(a.value)) + " " + (a.unit || "") + " [" + idx + "]。理由：" +
+      (verdict.reasons || []).join("；"));
+  }
+  let shown = limitsFound.filter(l => l.is_current);
+  if (!shown.length) shown = limitsFound;
+  if (verdict) {
+    const same = shown.filter(l => l.std_id === verdict.applicable.std_id);
+    shown = same.length ? same : shown;
+  } else if (slots.grades.length) {
+    const narrowed = shown.filter(l => slots.grades.indexOf(l.grade) >= 0);
+    shown = narrowed.length ? narrowed : shown;
+  }
+  shown.slice(0, 4).forEach(l => {
+    const idx = citations.length + 1;
+    citations.push({ idx:idx, std_id:l.std_id, table:l.table, clause_no:l.table, grade:l.grade, value:l.value, unit:l.unit });
+    const flag = l.is_current ? "" : "（该版本已非现行）";
+    const gradeTxt = gradePhrase(l.grade);
+    parts.push((l.std_title || "") + "（" + l.std_id + "）" + l.table + " 规定，" + gradeTxt +
+      "下限值为 " + (l.value_display || num(l.value)) + " " + l.unit + "（适用条件：" + l.condition + "）" + flag + " [" + idx + "]");
+  });
+  observations.forEach(o => {
+    if (o.tool === "judge_compliance" && o.output.verdict) {
+      const j = o.output;
+      const pct = (j.exceedance_ratio >= 0 ? "+" : "") + (j.exceedance_ratio * 100).toFixed(2) + "%";
+      parts.push("达标判定：实测折算 " + num(j.measured_normalized) + " " + j.limit_unit + "，限值 " +
+        (j.limit_display || num(j.limit)) + " " +
+        j.limit_unit + "，结论为 **" + j.verdict + "**（超标倍数 " + pct + "）。" + (j.caveat || ""));
+    }
+    if (o.tool === "classify_eia_category") {
+      const out = o.output;
+      if (out.suggested_type) {
+        const idx = citations.length + 1;
+        citations.push({ idx:idx, std_id:out.source_std_id || "名录-2021", table:"分类管理名录",
+          clause_no:"", grade:"", value:null, unit:"" });
+        parts.push("环评类别判定：" + out.project_type + " 对应「" + out.matched_category + "」，建议编制 **" +
+          out.suggested_type + "** [" + idx + "]。注意：" + out.must_verify);
+      } else parts.push("环评类别判定：" + (out.error || "") + "。" + (out.hint || ""));
+    }
+  });
+  let extra = [];
+  if (!limitsFound.length && !verdict) {
+    extra = Object.keys(evidenceClauses).map(k => evidenceClauses[k])
+      .filter(h => ["management","method","definition"].indexOf(h.clause_type) >= 0 && !h.is_stale);
+    extra.sort((a, b) => (b.score || 0) - (a.score || 0));
+  }
+  extra.slice(0, 2).forEach(h => {
+    const idx = citations.length + 1;
+    citations.push({ idx:idx, std_id:h.std_id, clause_no:h.clause_no || "", table:"", grade:"", value:null, unit:"" });
+    const txt = h.text.slice(0, 170) + (h.text.length > 170 ? "…" : "");
+    parts.push("规则依据 —— " + h.std_id + " 第" + (h.clause_no || "") + "条：" + txt + " [" + idx + "]");
+  });
+  if (!citations.length && !staleList.length)
+    return { answer: "知识库中未检索到足以回答「" + query + "」的依据。为避免给出错误的限值或条文，此处不作推测性回答。建议补充污染物名称、适用介质（地表水/废水/环境空气等）与标准等级后重试。",
+             citations: [], refused: true };
+  const refs = citations.map(fmtCitation).join("\n");
+  const answer = parts.map(p => "- " + p).join("\n") + "\n\n**依据**\n" + refs +
+    "\n\n_提示：以上限值来自项目知识库快照，正式引用前请以官方发布文本复核。_";
+  return { answer: answer, citations: citations, refused: false };
+}
+
+function runAgent(query) {
+  Tools.call_log = [];
+  const slots = understand(query);
+  const plan = planOffline(query, slots).slice(0, CFG.MAX_TOOL_ROUNDS);
+  const observations = [], evidenceClauses = {}, staleWarnings = [], limitsFound = [];
+  plan.forEach(step => {
+    if (!TOOL_ARGS[step.tool]) return;
+    let out;
+    try { out = callTool(step.tool, step.args); }
+    catch (e) { out = { error: "参数错误: " + e.message }; }
+    observations.push({ tool:step.tool, args:step.args, output:out });
+    if (step.tool === "search_standard") {
+      (out.hits || []).forEach(h => {
+        evidenceClauses[h.clause_id] = h;
+        if (h.is_stale && h.replacement) staleWarnings.push(h.std_id + " 已被替代，应改用 " + h.replacement);
+      });
+    }
+    if (step.tool === "check_standard_status") {
+      if (out.warning) staleWarnings.push(out.warning);
+      (out.candidates || []).forEach(c => {
+        const rep = c.replaced_by || [];
+        if (c.status === "superseded" && rep.length) staleWarnings.push(c.std_id + " 已被替代，应改用 " + rep[0]);
+      });
+    }
+    if (step.tool === "lookup_limit") limitsFound.push.apply(limitsFound, out.records || []);
+    if (step.tool === "get_clause" && out.text) evidenceClauses[out.clause_id] = out;
+  });
+  const comp = compose(query, slots, observations, evidenceClauses, limitsFound, staleWarnings);
+  return { query:query, slots:slots, plan:plan, tool_calls:Tools.call_log.slice(),
+    observations:observations, answer:comp.answer, citations:comp.citations,
+    stale_warnings: Array.from(new Set(staleWarnings)).sort(), refused:comp.refused, limits:limitsFound };
+}
+
+/* =====================================================================
+ * 6. 后端探测：/api/health 可达时优先用真实 Python Agent
+ * ===================================================================== */
+let ENGINE = "offline";
+(async function probe() {
+  const badge = document.getElementById("engineBadge");
+  if (location.protocol === "file:") {
+    badge.className = "badge b-info"; badge.innerHTML = '<span class="dot"></span>内置离线引擎';
+    badge.title = "以 file:// 打开，未探测后端。运行 python -m src.api.server 后改用 http:// 访问即可切换到真实后端。";
+    return;
+  }
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 1500);
+    const r = await fetch("/api/health", { signal: ctl.signal });
+    clearTimeout(t);
+    const j = await r.json();
+    if (j && j.ok) {
+      ENGINE = "backend";
+      badge.className = "badge b-ok";
+      badge.innerHTML = '<span class="dot"></span>真实后端 · ' + (j.provider || "offline") + " 规划器";
+      badge.title = "后端：" + j.index_stats.n_standards + " 标准 / " + j.index_stats.n_clauses + " 条文 / " + j.index_stats.n_limits + " 限值";
+    }
+  } catch (e) {
+    badge.className = "badge b-info"; badge.innerHTML = '<span class="dot"></span>内置离线引擎';
+    badge.title = "未探测到后端，已切换到与 Python 逐行对齐的内置引擎，结果一致。";
+  }
+})();
+
+async function ask(query) {
+  if (ENGINE === "backend") {
+    try {
+      const r = await fetch("/api/ask", { method:"POST", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ query:query }) });
+      if (r.ok) return await r.json();
+    } catch (e) { /* 落回离线引擎 */ }
+  }
+  return runAgent(query);
+}
+
+/* =====================================================================
+ * 7. 渲染
+ * ===================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const fmt = v => (v === null || v === undefined || isNaN(v)) ? "n/a" : Number(v).toFixed(3);
+const pct1 = v => (v === null || v === undefined || isNaN(v)) ? "n/a" : (v * 100).toFixed(1) + "%";
+
+const MEDIUM_CN = { water_surface:"地表水", water_wastewater:"废水", air_ambient:"环境空气",
+  air_emission:"废气", noise:"噪声", solid_waste:"固废", eia:"环评", monitoring:"监测" };
+const INTENT_CN = { wants_limit:"查限值", wants_status:"查时效", wants_eia_class:"判环评类别", is_comparison:"对比" };
+const CAT_CN = { limit_lookup:"限值直查", staleness:"时效性陷阱", precedence:"优先级裁决",
+  eia_class:"环评类别", refusal:"应拒答", multi_constraint:"多条件组合" };
+
+function slotChips(s) {
+  const rows = [];
+  const add = (k, v, cls) => rows.push('<span class="slot ' + (cls || "") + '"><span class="k">' + k + '</span><span class="v">' + esc(v) + "</span></span>");
+  if (s.std_refs.length) add("标准号", s.std_refs.join(" / "));
+  if (s.pollutants.length) add("污染物", s.pollutants.join(" / "));
+  if (s.media.length) add("介质", s.media.map(m => MEDIUM_CN[m] || m).join(" / "));
+  if (s.grades.length) add("等级", s.grades.join(" / "));
+  if (s.regions.length) add("属地", s.regions.join(" / "));
+  if (s.industry.length) add("行业", s.industry.join(" / "));
+  Object.keys(INTENT_CN).forEach(k => { if (s[k]) add("意图", INTENT_CN[k], "empty"); });
+  if (!rows.length) rows.push('<span class="slot empty"><span class="k">未识别到有效约束</span></span>');
+  return '<div class="slots">' + rows.join("") + "</div>";
+}
+
+function summarize(tool, out) {
+  switch (tool) {
+    case "search_standard":
+      if (out.error) return esc(out.error);
+      return "命中 <b>" + out.hits.length + "</b> 条条文" + (out.hits.length ? "，最高分 " + out.hits[0].score.toFixed(3) : "");
+    case "lookup_limit":
+      if (out.error) return esc(out.error);
+      return "匹配 <b>" + out.count + "</b> 条限值记录";
+    case "check_standard_status":
+      if (out.error) return esc(out.error);
+      if (out.ambiguous) return "标准号有歧义，返回 <b>" + out.candidates.length + "</b> 个版本供甄别";
+      return "状态 <b>" + out.status + "</b>（" + (out.is_current ? "现行有效" : "已被替代") + "）";
+    case "trace_standard_chain": {
+      const n = out.ancestors.length + out.descendants.length;
+      return n ? "替代链 <b>" + n + "</b> 环，当前版本 <b>" + esc(out.current_in_line) + "</b>" : "无已知替代关系";
+    }
+    case "resolve_applicable_standard":
+      if (out.error) return esc(out.error);
+      return "裁定适用 <b>" + esc(out.applicable.std_id) + "</b>（" + esc(out.applicable.grade) + "，限值 " + out.applicable.value + " " + esc(out.applicable.unit) + "）";
+    case "classify_eia_category":
+      return out.suggested_type ? "判定为 <b>" + esc(out.suggested_type) + "</b>（" + esc(out.matched_category) + "）" : esc(out.error || "");
+    case "judge_compliance":
+      return out.verdict ? "结论 <b>" + out.verdict + "</b>，限值 " + out.limit + " " + esc(out.limit_unit) : esc(out.error || "");
+    case "get_clause":
+      return out.text ? "取回原文 " + out.text.length + " 字" : esc(out.error || "");
+    default: return "";
+  }
+}
+
+function collectIntercepted(res) {
+  const out = [], seen = {};
+  const push = o => { const k = o.std_id + o.reason; if (!seen[k]) { seen[k] = 1; out.push(o); } };
+  res.observations.forEach(o => {
+    if (o.tool === "search_standard")
+      (o.output.hits || []).forEach(h => {
+        if (h.is_stale) push({ std_id:h.std_id, replacement:h.replacement || "—",
+          reason:"条文命中但标准已废止，已从引用中剔除", text:h.text });
+      });
+    if (o.tool === "check_standard_status") {
+      if (o.output.warning) push({ std_id:o.output.std_id, replacement:(o.output.replaced_by || []).join("、"),
+        reason:"时效性校验：该版本已被替代", text:"" });
+      (o.output.candidates || []).forEach(c => {
+        if (c.status === "superseded") push({ std_id:c.std_id, replacement:(c.replaced_by || []).join("、"),
+          reason:"同名标准多版本并存，失效版本已被排除在引用之外", text:"" });
+      });
+    }
+  });
+  return out;
+}
+
+function resolveCitationText(c) {
+  if (c.clause_no && !c.table) {
+    const cl = CLAUSE_MAP[c.std_id + "#" + c.clause_no];
+    if (cl) return { text:cl.text, path:(cl.path || []).join(" › ") };
+  }
+  let rec = LIMITS.find(l => l.std_id === c.std_id && l.table === c.table &&
+    (c.value === null || c.value === undefined || Number(l.value) === Number(c.value)));
+  if (rec) {
+    const cl = LIMITS.length && Object.keys(CLAUSE_MAP)
+      .map(k => CLAUSE_MAP[k])
+      .find(x => x.limit_ref && x.limit_ref.indexOf(c.std_id + "/" + rec.table.replace("表", "T")) >= 0);
+    return { text: cl ? cl.text : (rec.pollutant + "：" + rec.grade + " " + rec.value + " " + rec.unit + "（" + rec.condition + "）"),
+             path: cl ? (cl.path || []).join(" › ") : "" };
+  }
+  return { text:"", path:"" };
+}
+
+function renderAnswer(text) {
+  let h = esc(text);
+  h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/_([^_\n]+)_/g, "<em>$1</em>");
+  h = h.replace(/\[(\d+)\]/g, '<span class="cite" data-cite="$1">[$1]</span>');
+  return h;
+}
+
+function renderResult(res, item) {
+  const R = [];
+  const intercepted = collectIntercepted(res);
+
+  // —— 结论徽章
+  const chips = [];
+  if (res.refused) chips.push('<span class="badge b-warn"><span class="dot"></span>主动拒答</span>');
+  else chips.push('<span class="badge b-ok"><span class="dot"></span>已作答</span>');
+  if (res.stale_warnings.length) chips.push('<span class="badge b-danger"><span class="dot"></span>时效性提示 ' + res.stale_warnings.length + "</span>");
+  else chips.push('<span class="badge b-neutral"><span class="dot"></span>无失效引用</span>');
+  chips.push('<span class="badge b-purple">' + res.observations.length + " 次工具调用</span>");
+  chips.push('<span class="badge b-teal">' + res.citations.length + " 条引用</span>");
+  if (item) chips.push('<span class="badge b-outline">' + esc(item.id) + " · " + (CAT_CN[item.category] || item.category) + "</span>");
+
+  R.push('<div class="card"><div class="card-h">' +
+    (item ? '<span class="step">题</span><h3>' + esc(item.query) + "</h3>" : "<h3>" + esc(res.query) + "</h3>") +
+    '</div><div class="card-b"><div class="slots" style="margin-bottom:0">' + chips.join(" ") + "</div></div></div>");
+
+  // —— 1 查询理解
+  R.push('<div class="card"><div class="card-h"><span class="step">1</span><h3>查询理解 · 槽位抽取</h3>' +
+    '<span class="badge b-outline">规则 + 正则，非模型推断</span></div>' +
+    '<div class="card-b">' + slotChips(res.slots) +
+    '<div class="footnote">等级识别必须按介质区分体系：地表水是 Ⅰ–Ⅴ 类、废水是一至三级、噪声是 0–4 类，三套体系互不相通。' +
+    '朴素子串匹配会让 "III类" 同时命中 "II类" 与 "I类"，是本领域代价最高的 bug 之一。</div></div></div>');
+
+  // —— 2 工具调用
+  let tl = "";
+  res.observations.forEach((o, i) => {
+    const hasErr = o.output && o.output.error;
+    const staleHit = o.tool === "search_standard" && (o.output.hits || []).some(h => h.is_stale);
+    const cls = hasErr ? "err" : (staleHit ? "stale" : "");
+    const argsStr = Object.keys(o.args).filter(k => o.args[k] !== "" && o.args[k] !== undefined && o.args[k] !== null)
+      .map(k => k + "=" + (typeof o.args[k] === "string" ? '"' + o.args[k] + '"' : o.args[k])).join(", ");
+    const tags = [];
+    if (o.tool === "check_standard_status") tags.push('<span class="badge b-danger">硬约束前置</span>');
+    if (staleHit) tags.push('<span class="badge b-warn">命中失效条文</span>');
+    tl += '<div class="tl-item ' + cls + '"><div class="tl-head"><span class="tiny muted mono">' + (i + 1) + "</span>" +
+      '<span class="tl-name">' + o.tool + "</span>" + tags.join("") + "</div>" +
+      '<div class="tl-args">' + esc(argsStr) + "</div>" +
+      '<div class="tl-out">' + summarize(o.tool, o.output || {}) + "</div>" +
+      '<details class="raw"><summary>查看返回结构</summary><pre>' + esc(JSON.stringify(o.output, null, 1)) + "</pre></details></div>";
+  });
+  R.push('<div class="card"><div class="card-h"><span class="step">2</span><h3>工具调用轨迹</h3>' +
+    '<span class="badge b-outline">' + res.plan.length + " 步规划 / " + res.observations.length + " 次执行</span></div>" +
+    '<div class="card-b"><div class="tl">' + tl + "</div>" +
+    '<div class="footnote">规划器把「引用标准号前必须复核时效性」做成<strong>无条件插入的步骤</strong>，而不是交给模型判断要不要 —— 时效性违规是唯一的一票否决指标，不能有概率性。</div>' +
+    "</div></div>");
+
+  // —— 3 时效性拦截
+  if (intercepted.length) {
+    let it = "";
+    intercepted.forEach(x => {
+      it += '<div class="it"><span class="x">✕</span><div><div><span class="mono small"><b>' + esc(x.std_id) +
+        '</b></span> <span class="badge b-danger">已废止</span> <span class="tiny muted">替代版本：<span class="mono">' +
+        esc(x.replacement) + "</span></span></div><div class=\"small muted\">" + esc(x.reason) + "</div>" +
+        (x.text ? '<div class="tiny muted" style="margin-top:3px">' + esc(x.text.slice(0, 90)) + "…</div>" : "") +
+        "</div></div>";
+    });
+    R.push('<div class="card"><div class="card-h"><span class="step">3</span><h3>时效性拦截清单</h3>' +
+      '<span class="badge b-danger">' + intercepted.length + " 项被拦截</span></div>" +
+      '<div class="card-b"><div class="intercept">' + it + "</div>" +
+      '<div class="footnote">这一栏是这个项目与「普通 RAG 问答」的分水岭：失效标准的条文<strong>检索得到、但对用户不可见</strong>。' +
+      "早期版本只把替代关系做成顶部提示，条文原文仍进了引用列表 —— 提示与引用并存，用户复制走的还是废止条文。改成数据结构层面的硬过滤后，时效性违规率才归零。</div>" +
+      "</div></div>");
+  }
+
+  // —— 4 答案
+  const ansBody = res.refused
+    ? '<div class="refuse">' + renderAnswer(res.answer) + "</div>"
+    : '<div class="answer">' + renderAnswer(res.answer) + "</div>";
+  const staleBanner = res.stale_warnings.length
+    ? '<div class="stale-banner" style="margin-bottom:11px"><h4>⚠ 时效性提示</h4><ul>' +
+      res.stale_warnings.map(w => "<li>" + esc(w) + "</li>").join("") + "</ul></div>" : "";
+  R.push('<div class="card"><div class="card-h"><span class="step">4</span><h3>答案</h3>' +
+    (res.refused ? '<span class="badge b-warn">拒答而非猜测</span>' : '<span class="badge b-ok">逐句可溯源</span>') +
+    '</div><div class="card-b">' + staleBanner + ansBody + "</div></div>");
+
+  // —— 5 引用来源
+  if (res.citations.length) {
+    let cl = "";
+    res.citations.forEach(c => {
+      const std = STD_MAP[c.std_id] || {};
+      const info = resolveCitationText(c);
+      const stale = std.status === "superseded";
+      cl += '<div class="cit" data-cit="' + c.idx + '"><div class="cit-h">' +
+        '<span class="cit-idx">[' + c.idx + "]</span>" +
+        '<span class="cit-std">' + esc(c.std_id) + "</span>" +
+        (std.title ? '<span class="small muted">' + esc(std.title) + "</span>" : "") +
+        (stale ? '<span class="badge b-danger">已废止</span>' : '<span class="badge b-ok">现行有效</span>') +
+        (c.grade ? '<span class="badge b-neutral">' + esc(c.grade) + "</span>" : "") +
+        (c.value !== null && c.value !== undefined ? '<span class="badge b-info">限值 ' + c.value + " " + esc(c.unit) + "</span>" : "") +
+        "</div>" +
+        (info.text ? '<div class="cit-txt">' + esc(info.text) + "</div>" : "") +
+        '<div class="cit-meta">' +
+        (c.table ? "<span>" + esc(c.table) + "</span>" : "") +
+        (c.clause_no && !c.table ? "<span>第 " + esc(c.clause_no) + " 条</span>" : "") +
+        (std.effective_date ? "<span>实施 " + esc(std.effective_date) + "</span>" : "") +
+        (std.level ? "<span>" + esc(std.level) + "</span>" : "") +
+        (info.path ? "<span>" + esc(info.path) + "</span>" : "") +
+        "</div></div>";
+    });
+    R.push('<div class="card"><div class="card-h"><span class="step">5</span><h3>引用来源溯源</h3>' +
+      '<span class="badge b-outline">点击卡片或答案中的 [n] 定位</span></div>' +
+      '<div class="card-b"><div class="cit-list">' + cl + "</div></div></div>");
+  }
+
+  $("result").innerHTML = R.join("");
+  const body = $("result");
+  body.querySelectorAll("[data-cite]").forEach(el => el.addEventListener("click", () => {
+    const idx = el.getAttribute("data-cite");
+    highlightCite(idx);
+  }));
+  body.querySelectorAll("[data-cit]").forEach(el => el.addEventListener("click", () => {
+    highlightCite(el.getAttribute("data-cit"));
+  }));
+  body.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+function highlightCite(idx) {
+  document.querySelectorAll(".cite.on").forEach(e => e.classList.remove("on"));
+  document.querySelectorAll(".cit.on").forEach(e => e.classList.remove("on"));
+  document.querySelectorAll('[data-cite="' + idx + '"]').forEach(e => e.classList.add("on"));
+  const card = document.querySelector('[data-cit="' + idx + '"]');
+  if (card) { card.classList.add("on"); card.scrollIntoView({ behavior:"smooth", block:"center" }); }
+}
+
+/* ---------- 左侧题目列表 ---------- */
+function renderQuestionList() {
+  const groups = {};
+  GOLDEN.forEach(it => (groups[it.category] = groups[it.category] || []).push(it));
+  let h = "";
+  Object.keys(groups).forEach(cat => {
+    h += '<div class="cat-group"><div class="cat-label">' + (CAT_CN[cat] || cat) + " · " + groups[cat].length + "</div>";
+    groups[cat].forEach(it => {
+      h += '<button class="qitem" data-q="' + esc(it.query) + '" data-id="' + it.id + '">' +
+        '<span class="qid">' + it.id + "</span>" + esc(it.query) + "</button>";
+    });
+    h += "</div>";
+  });
+  $("qlist").innerHTML = h;
+  $("goldenCount").textContent = GOLDEN.length + " 题";
+  $("qlist").querySelectorAll(".qitem").forEach(b => b.addEventListener("click", () => {
+    $("qInput").value = b.getAttribute("data-q");
+    runOne(b.getAttribute("data-q"), GOLDEN.find(x => x.id === b.getAttribute("data-id")));
+  }));
+}
+async function runOne(query, item) {
+  if (!query) return;
+  $("result").innerHTML = '<div class="card"><div class="card-b"><span class="spin"></span> 正在执行规划与工具调用…</div></div>';
+  const res = await ask(query);
+  renderResult(res, item || null);
+}
+
+/* ---------- 评测面板 ---------- */
+const LAYERS = [
+  { id:"L1", name:"检索层", color:"#0b63ce", metrics:[
+    { k:"recall@5", n:"Recall@5", g:0.85, d:"前 5 条命中相关条文的比例" },
+    { k:"mrr", n:"MRR", g:0.70, d:"首个相关条文的排名倒数均值" },
+    { k:"ndcg@10", n:"nDCG@10", g:null, d:"考虑排序位置的归一化折损累积增益" }]},
+  { id:"L2", name:"生成层", color:"#0e7490", metrics:[
+    { k:"numerical_accuracy", n:"数值准确率", g:0.90, d:"标注数值是否出现在答案中（含正文）" },
+    { k:"conclusion_accuracy", n:"结论一致率", g:0.95, d:"裁决题给出的唯一结论是否等于标注答案" },
+    { k:"key_point_coverage", n:"要点覆盖率", g:null, d:"答案覆盖标注要点的比例" },
+    { k:"citation_precision", n:"引用精度", g:0.90, d:"引用中不含必禁标准、且来自期望标准" },
+    { k:"citation_recall", n:"引用召回", g:null, d:"期望标准被引到的比例" }]},
+  { id:"L3", name:"工具层", color:"#6941c6", metrics:[
+    { k:"tool_selection", n:"工具选择准确率", g:0.90, d:"规划命中了期望工具的比例" },
+    { k:"tool_success_rate", n:"工具成功率", g:null, d:"工具调用无 error 的比例" },
+    { k:"tool_efficiency", n:"工具调用效率", g:null, d:"未超轮数上限且无冗余调用" }]},
+  { id:"L4", name:"端到端", color:"#c02634", metrics:[
+    { k:"stale_citation_rate", n:"时效性违规率", g:0.0, d:"引用已废止标准的比例 · 一票否决", lower:true },
+    { k:"refusal_correct", n:"拒答正确率", g:0.80, d:"应拒答的拒答、应作答的作答" }]}
+];
+
+function renderEval() {
+  if (!EVAL) { $("evalBody").innerHTML = '<div class="warn-note">未找到 out/eval_report.json，请先运行 <span class="mono">python -m src.eval.run_eval</span> 后重新构建前端。</div>'; return; }
+  const A = EVAL.aggregate, G = EVAL.gates, gate = EVAL.gate_result;
+  const H = [];
+
+  H.push('<div class="hero" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:9px">' +
+    '<h2 style="margin:0">发布门禁</h2>' +
+    (gate.passed ? '<span class="badge b-ok" style="font-size:12.5px"><span class="dot"></span>✅ 通过</span>'
+                 : '<span class="badge b-danger" style="font-size:12.5px"><span class="dot"></span>❌ 未通过</span>') +
+    '<span class="badge b-neutral">' + A.n_cases + " 题黄金集</span>" +
+    '<span class="badge b-neutral">门禁实际校验 ' + (gate.n_evaluated || "?") + "/" + (gate.n_gates || "?") + " 项</span>" +
+    '<span class="badge b-purple">平均 ' + (A.avg_tool_calls || 0).toFixed(2) + " 次工具调用/题</span>" +
+    "</div>" +
+    '<p>' + (gate.passed
+      ? "全部 " + A.n_cases + " 题通过门禁。时效性违规率为 0 是这套系统的底线：只要引用了已废止标准，无论其他指标多好都不允许上线。"
+      : "存在未达标项：" + (gate.failures || []).join("；") + "。") +
+    "</p>" +
+    '<p class="warn-note" style="margin-top:8px">' +
+    "「数值准确率」问的是「答案正文里出现过这个数吗」，「结论一致率」问的是「结论就是它吗」。" +
+    "裁决题（排入某水域执行几级标准、属地执行哪个标准）如果把候选等级成套列出来，" +
+    "前者仍然给 1.0 —— 这正是早期版本放过一道错答的原因。两个指标要一起看。" +
+    "</p>" +
+    '<div class="legend">' +
+    '<span><i style="background:var(--ok)"></i>达标</span>' +
+    '<span><i style="background:var(--danger)"></i>未达标</span>' +
+    '<span><i style="background:#98a2b3"></i>竖向标记 = 门禁阈值</span>' +
+    '<span><i style="background:var(--accent)"></i>无门禁的观测指标</span></div></div>');
+
+  H.push('<div class="grid-4">');
+  LAYERS.forEach(L => {
+    let rows = "";
+    L.metrics.forEach(m => {
+      const v = A[m.k];
+      const has = v !== null && v !== undefined && !isNaN(v);
+      let pass = true;
+      if (m.g !== null && has) pass = m.lower ? v <= m.g : v >= m.g;
+      const color = !has ? "#98a2b3" : (m.g === null ? L.color : (pass ? "var(--ok)" : "var(--danger)"));
+      const w = has ? Math.max(1.5, Math.min(100, m.lower ? (1 - Math.min(v, 1)) * 100 : v * 100)) : 0;
+      rows += '<div class="metric"><div class="metric-h"><span class="metric-n" title="' + esc(m.d) + '">' + m.n + "</span>" +
+        '<span class="metric-v" style="color:' + color + '">' + fmt(v) + "</span>" +
+        '<span class="metric-g">' + (m.g === null ? "—" : (m.lower ? "≤ " : "≥ ") + m.g.toFixed(2)) + "</span></div>" +
+        '<div class="bar"><i style="width:' + w + "%;background:" + color + '"></i>' +
+        (m.g !== null ? '<span class="gate" style="left:' + (m.lower ? (1 - m.g) * 100 : m.g * 100) + '%"></span>' : "") +
+        "</div></div>";
+    });
+    H.push('<div class="card"><div class="card-b"><div class="layer-h">' +
+      '<span class="ln" style="background:' + L.color + '">' + L.id + "</span><h3>" + L.name + "</h3></div>" + rows + "</div></div>");
+  });
+  H.push("</div>");
+
+  // 分类别切片
+  const cats = A.by_category || {};
+  let ct = '<table class="tbl"><thead><tr><th>类别</th><th>题量</th><th>Recall@5</th><th>数值准确率</th>' +
+    "<th>要点覆盖</th><th>时效违规</th><th>拒答正确</th></tr></thead><tbody>";
+  Object.keys(cats).sort().forEach(c => {
+    const s = cats[c];
+    ct += "<tr><td><b>" + (CAT_CN[c] || c) + '</b><div class="tiny muted mono">' + c + "</div></td>" +
+      '<td class="num">' + s.n + '</td><td class="num">' + fmt(s["recall@5"]) + '</td><td class="num">' + fmt(s.numerical_accuracy) +
+      '</td><td class="num">' + fmt(s.key_point_coverage) + '</td><td class="num" style="color:' +
+      (s.stale_citation_rate > 0 ? "var(--danger)" : "var(--ok)") + '">' + s.stale_citation_rate.toFixed(2) +
+      '</td><td class="num">' + fmt(s.refusal_correct) + "</td></tr>";
+  });
+  ct += "</tbody></table>";
+  H.push('<div class="card" style="margin-top:16px"><div class="card-h"><h3>分类别切片</h3>' +
+    '<span class="badge b-outline">定位问题的关键视图：整体指标会掩盖单类退化</span></div>' +
+    '<div class="card-b" style="padding:0">' + ct + "</div></div>");
+
+  // 逐题
+  let rt = '<table class="tbl"><thead><tr><th>题号</th><th>类别</th><th>问题</th><th>结果</th>' +
+    '<th title="答案正文里是否出现过标注数值">数值</th>' +
+    '<th title="裁决结论是否等于标注答案；非裁决题为 —">结论</th>' +
+    "<th>要点</th><th>时效</th><th>工具</th><th></th></tr></thead><tbody>";
+  EVAL.cases.forEach(c => {
+    const ok = c.refusal_correct;
+    rt += '<tr><td class="mono">' + c.id + '</td><td class="tiny">' + (CAT_CN[c.category] || c.category) + "</td>" +
+      '<td class="q">' + esc(c.query) + "</td>" +
+      '<td><span class="badge ' + (ok ? "b-ok" : "b-danger") + '">' + (ok ? "通过" : "未通过") + "</span>" +
+      (c.refused ? ' <span class="badge b-warn">拒答</span>' : "") + "</td>" +
+      '<td class="num">' + fmt(c.numerical_accuracy) + '</td>' +
+      '<td class="num"' + (c.conclusion_accuracy === 0 ? ' style="color:var(--danger);font-weight:600"' : "") + '>' +
+      (c.conclusion_accuracy === null || c.conclusion_accuracy === undefined ? "—" : fmt(c.conclusion_accuracy)) + "</td>" +
+      '<td class="num">' + fmt(c.key_point_coverage) + "</td>" +
+      '<td class="num" style="color:' + (c.stale_citation ? "var(--danger)" : "var(--text-3)") + '">' +
+      (c.stale_citation ? "违规" : "0") + "</td>" +
+      '<td class="num">' + (c.plan || []).join("<br>").replace(/\n/g, "") + "</td>" +
+      '<td><button class="rowbtn" data-run="' + esc(c.query) + '" data-id="' + c.id + '">复现</button></td></tr>';
+  });
+  rt += "</tbody></table>";
+  H.push('<div class="card" style="margin-top:16px"><div class="card-h"><h3>黄金集逐题结果</h3>' +
+    '<span class="badge b-outline">点「复现」跳到问答台重跑该题</span></div>' +
+    '<div class="card-b scroll" style="padding:0;max-height:560px">' + rt + "</div></div>");
+
+  const diag = D.diagnosis;
+  if (diag && diag.attribution) {
+    let dt = "";
+    if (!diag.attribution.length) dt = '<div class="small muted">本轮无失败样例，归因清单为空。</div>';
+    else (diag.attribution || []).forEach(f => {
+      dt += '<div class="intercept" style="margin-bottom:9px;border-color:var(--border-2);background:var(--surface-2)">' +
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge b-danger mono">' + f.code + "</span>" +
+        "<b>" + esc(f.name) + '</b><span class="badge b-neutral">' + f.count + " 例</span>" +
+        '<span class="badge b-purple">责任层：' + esc(f.layer) + "</span></div>" +
+        '<div class="small" style="margin-top:5px;color:var(--text-2)">' + esc(f.root_cause) + "</div></div>";
+    });
+    H.push('<div class="card" style="margin-top:16px"><div class="card-h"><h3>Bad case 自动归因</h3>' +
+      '<span class="badge b-outline">8 分类规则 · 每类绑定责任层与定向动作</span></div>' +
+      '<div class="card-b">' + dt +
+      '<div class="footnote">归因不是给人看的报告，而是直接生成下一轮的修复清单：规则命中哪一类，就改哪一层的代码。</div></div></div>');
+  }
+  $("evalBody").innerHTML = H.join("");
+  $("evalBody").querySelectorAll("[data-run]").forEach(b => b.addEventListener("click", () => {
+    switchTab("ask");
+    $("qInput").value = b.getAttribute("data-run");
+    runOne(b.getAttribute("data-run"), GOLDEN.find(x => x.id === b.getAttribute("data-id")));
+  }));
+}
+
+/* ---------- 知识库面板 ---------- */
+function renderKB() {
+  const st = IDX.stats, H = [];
+  H.push('<div class="grid-4" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px">' +
+    [["收录标准", st.n_standards, "国家标准 + 地方标准 + 行业导则"],
+     ["条文", st.n_clauses, "按 章—条—款 层级切分"],
+     ["限值记录", st.n_limits, "离开文本层，结构化存储"],
+     ["失效条文", st.n_stale_clauses, "语料中的时效性陷阱", "danger"],
+     ["已核验标准", st.n_verified_standards, "生产环境需全部置 true", "warn"]]
+    .map(x => '<div class="stat"><div class="n" style="color:' + (x[3] ? "var(--" + x[3] + ")" : "var(--text)") + '">' +
+      x[1] + '</div><div class="l">' + x[0] + '</div><div class="tiny muted" style="margin-top:3px">' + x[2] + "</div></div>").join("") +
+    "</div>");
+
+  H.push('<div class="warn-note" style="margin-bottom:16px"><b>⚠ 数据边界</b>：当前知识库为<strong>结构演示数据</strong>（每条记录 <span class="mono">verified:false</span>），用于验证解析 → 切分 → 索引 → 检索 → 工具调用 → 评测的完整管线。' +
+    "生产环境必须从生态环境部标准库等官方源重新灌入并逐条核验 —— <strong>用未核验的数据证明系统准确，是自欺</strong>。" +
+    '<div class="tiny muted" style="margin-top:5px">官方数据源：' + (IDX.meta.official_sources || []).join(" · ") + "</div></div>");
+
+  let t = '<table class="tbl"><thead><tr><th>标准号</th><th>名称</th><th>层级</th><th>介质</th>' +
+    "<th>发布</th><th>实施</th><th>状态</th><th>替代关系</th></tr></thead><tbody>";
+  IDX.standards.forEach(s => {
+    const sup = s.status === "superseded";
+    t += '<tr><td class="mono"><b>' + esc(s.std_id) + "</b></td><td>" + esc(s.title) + "</td>" +
+      '<td class="tiny">' + esc(s.level) + "</td><td class=\"tiny\">" + (s.medium || []).join(", ") + "</td>" +
+      '<td class="num">' + esc(s.publish_date) + '</td><td class="num">' + esc(s.effective_date) + "</td>" +
+      '<td><span class="badge ' + (sup ? "b-danger" : "b-ok") + '">' + (sup ? "已废止" : "现行") + "</span></td>" +
+      '<td class="tiny muted">' +
+      ((s.replaces || []).length ? "替代 " + s.replaces.map(x => '<span class="mono">' + esc(x) + "</span>").join("、") + "<br>" : "") +
+      ((s.replaced_by || []).length ? '<span style="color:var(--danger)">被 ' + s.replaced_by.map(x => '<span class="mono">' + esc(x) + "</span>").join("、") + " 替代</span>" : "") +
+      (!((s.replaces || []).length || (s.replaced_by || []).length) ? '<span class="muted">—</span>' : "") +
+      "</td></tr>";
+  });
+  t += "</tbody></table>";
+  H.push('<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>标准清单与时效状态</h3>' +
+    '<span class="badge b-outline">检索时按此时效标签硬过滤</span></div><div class="card-b scroll" style="padding:0">' + t + "</div></div>");
+
+  const chain = IDX.chain || [];
+  H.push('<div class="card" style="margin-bottom:16px"><div class="card-h"><h3>替代链</h3>' +
+    '<span class="badge b-outline">' + chain.length + " 组</span></div><div class=\"card-b\">" +
+    '<div class="chipset">' + chain.map(c =>
+      '<span class="chip">' + esc(c.from) + ' <span style="color:var(--accent)">→</span> ' + esc(c.to) +
+      ' <span class="muted">(' + esc(c.effective_date) + ")</span></span>").join("") + "</div>" +
+    '<div class="footnote">替代链是 check_standard_status 与 trace_standard_chain 的数据基础。环保领域一个常见事实是：被替代的旧版标准往往措辞更贴近用户提问词，纯向量检索会优先命中它。</div></div></div>');
+
+  let lt = '<table class="tbl"><thead><tr><th>标准</th><th>表号</th><th>污染物</th><th>介质</th><th>等级</th>' +
+    "<th>适用条件</th><th>限值</th><th>单位</th><th>状态</th></tr></thead><tbody>";
+  IDX.limits.forEach(l => {
+    const s = STD_MAP[l.std_id] || {};
+    const sup = s.status === "superseded";
+    lt += '<tr><td class="mono tiny">' + esc(l.std_id) + '</td><td class="tiny">' + esc(l.table) + "</td><td><b>" +
+      esc(l.pollutant) + '</b><div class="tiny muted">' + (l.pollutant_alias || []).join("、") + "</div></td>" +
+      '<td class="tiny">' + (MEDIUM_CN[l.medium] || l.medium) + '</td><td class="tiny">' + esc(l.grade) + "</td>" +
+      '<td class="tiny muted">' + esc(l.condition) + '</td><td class="num"><b>' + l.value + '</b></td><td class="tiny">' +
+      esc(l.unit) + '</td><td><span class="badge ' + (sup ? "b-danger" : "b-ok") + '">' + (sup ? "失效" : "现行") + "</span></td></tr>";
+  });
+  lt += "</tbody></table>";
+  H.push('<div class="card"><div class="card-h"><h3>结构化限值表</h3>' +
+    '<span class="badge b-outline">' + IDX.limits.length + " 条 · 限值必须离开文本层</span></div>" +
+    '<div class="card-b scroll" style="padding:0;max-height:520px">' + lt + "</div></div>");
+
+  $("kbBody").innerHTML = H.join("");
+}
+
+/* ---------- 架构面板 ---------- */
+function renderArch() {
+  const layers = [
+    { n:"L5", t:"编排层 Agent Loop", c:"#6941c6", d:"规划 → 调用 → 汇总 → 合成",
+      m:[["规划器","offline 规则 / llm Function Calling 双模"],["硬约束注入","点名标准号即无条件前置时效校验"],["查询分解","对比题按介质拆多路，避免丢一半答案"],["证据收敛","裁决胜出者优先、按等级收敛、失效剔除"]] },
+    { n:"L4", t:"评测层 Eval Loop", c:"#c02634", d:"四层 15 项指标 + 归因 + 回归",
+      m:[["L1 检索","Recall@5 / MRR / nDCG@10"],["L2 生成","数值准确率 / 结论一致率 / 引用精度"],["L3 工具","选择准确率 / 成功率 / 调用效率"],["L4 端到端","时效违规率(一票否决) / 拒答正确率"],["归因","8 分类，每类绑定责任层与动作"],["门禁","指标缺失按不通过处理，报告打印实际校验项数"]] },
+    { n:"L3", t:"工具层 Tool Use", c:"#0e7490", d:"8 个工具，把确定性操作外包给代码",
+      m:[["check_standard_status","时效性校验 ★"],["trace_standard_chain","替代链追溯 ★"],["resolve_applicable_standard","适用优先级裁决 ★"],["lookup_limit","限值结构化直查"],["judge_compliance","达标判定 + 单位换算"],["classify_eia_category","环评类别判定"],["search_standard","自然语言条文检索"],["get_clause","条文原文精查"]] },
+    { n:"L2", t:"检索层 Hybrid Retrieval", c:"#0b63ce", d:"硬过滤前置 → 双路召回 → RRF → 领域重排",
+      m:[["查询理解","7 类槽位抽取（按介质区分等级体系 / 受纳水体→排放等级 / 时期）"],["元数据过滤","介质/区域前置剪枝"],["BM25","强符号查询的判别信息在罕见 token 上"],["向量","hashing + TF-IDF 权重，可离线可复现"],["RRF 融合","只用排名，规避量纲不可比"],["重排","时效性 / 层级 / 属地 / 时期匹配 / 同分从严"]] },
+    { n:"L1", t:"知识库层 Knowledge Base", c:"#0f8a4d", d:"三层模型分离，限值不留在文本里",
+      m:[["标准 Standard","标准号 / 时效状态 / 替代关系 / 适用范围"],["条文 Clause","章—条—款 层级切分，引用可落到条文号"],["限值 Limit","污染物 × 介质 × 等级 × 条件 → 数值"],["索引 Index","clauses / limits / standards / chain"]] }
+  ];
+  const H = ['<div class="arch">'];
+  layers.forEach((L, i) => {
+    H.push('<div class="layer"><div class="layer-top">' +
+      '<span class="ln" style="background:' + L.c + '">' + L.n + '</span><h4>' + L.t + "</h4>" +
+      '<span class="desc">' + L.d + "</span></div>" +
+      '<div class="mods">' + L.m.map(m => '<div class="mod"><b>' + esc(m[0]) + "</b> · " + esc(m[1]) + "</div>").join("") + "</div></div>");
+    if (i < layers.length - 1) H.push('<div class="arrow">▲</div>');
+  });
+  H.push("</div>");
+
+  H.push('<div class="decision">' +
+    [["为什么用 RRF 而不是加权求和",
+      "BM25 分与向量分的量纲不可比，加权需要为每个查询反复调参，跨查询极不稳定。RRF 只用排名，把「两路都排得靠前」作为共识信号，在环保这种查询形态差异极大的场景下鲁棒性明显更好。"],
+     ["为什么失效标准要保留在语料里",
+      "不是为了检索命中，而是为了让下游工具能主动告诉用户「你查的这条已经被替代了，应该改用 XX」。直接删掉失效条文，用户就永远不知道自己手上的旧标准已经作废——那才是最危险的状态。"],
+     ["为什么等级识别必须按介质分流",
+      "地表水是 Ⅰ–Ⅴ 类、废水是一至三级、噪声是 0–4 类，三套体系互不相通。更隐蔽的是 \"III类\" 同时包含子串 \"II类\" 和 \"I类\"，朴素子串匹配会把单一等级误判成三个，进而取到错误档位。"],
+     ["为什么限值必须离开文本层",
+      "同一污染物的限值随介质、等级、河流/湖库、常规/冬季时段而变，全部写在自然语言里就无法做条件筛选与达标计算。拆成「污染物 × 介质 × 等级 × 条件 → 数值」的结构化记录，工具才能直查。"],
+     ["为什么时效性是唯一的一票否决项",
+      "引用已废止标准在环评与验收场景下是实质性错误，会导致返工甚至合规风险。其他指标（检索排序、引用完整度）差一点是可以接受的工程折衷，这一条不行，所以它不参与加权，只做硬门禁。"],
+     ["为什么指标要盯「结论」而不只是「出现过」",
+      "「答案里出现过 100 吗」和「结论就是 100 吗」是两回事。裁决类问题会把候选标准成套列进正文（一级 100 / 二级 150 / 三级 500），前者给满分、后者给零分 —— 而这恰好就是答对与答错的分界。曾有一个结论写「三级 500」、标注答案是「一级 100」的样例，靠这个漏洞拿到了数值准确率与要点覆盖率双 1.0 并被门禁放行。所以补了「结论一致率」，只校验裁决结论句里的唯一结论。"],
+     ["为什么排放等级要由受纳水体推导",
+      "GB 8978-1996 §4.2 是按受纳水体定级的：排入Ⅲ类水域执行一级，排入Ⅳ、Ⅴ类执行二级，纳管执行三级。用户问「排入地表水Ⅲ类水域执行几级标准」时，Ⅲ类只是受纳水体的类别，不是排放等级。少了这层翻译，裁决只能在三个等级里按限值大小猜 —— 蒙对了没人夸，蒙错了给出的就是错误的合规底线。"]]
+    .map(d => '<div class="d"><h5>' + esc(d[0]) + "</h5><p>" + esc(d[1]) + "</p></div>").join("") +
+    "</div>");
+
+  H.push('<div class="card" style="margin-top:18px"><div class="card-h"><h3>本 Demo 的两套执行路径</h3></div>' +
+    '<div class="card-b"><div class="grid-4" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">' +
+    '<div class="mod" style="display:block;padding:11px 13px"><b>内置离线引擎</b>' +
+    '<div class="small muted" style="margin-top:5px">本页内嵌了一份与 <span class="mono">src/</span> 下 Python 实现逐行对齐的 JS 移植：' +
+    "分词（字符 unigram + bigram）、BM25、MD5 哈希向量、RRF 融合、领域重排、8 个工具、规则规划器、答案合成，全部一一对应。" +
+    "Python 侧未安装 jieba，走的正是同一套降级分词分支，因此检索排序与判定结果<strong>与后端完全可复现</strong>。" +
+    "数据快照与索引在构建时由 <span class=\"mono\">web/build_web.py</span> 从 <span class=\"mono\">out/kb_index/index.json</span> 注入，不会与后端漂移。</div></div>" +
+    '<div class="mod" style="display:block;padding:11px 13px"><b>真实后端</b>' +
+    '<div class="small muted" style="margin-top:5px">运行 <span class="mono">python -m src.api.server</span> 后从 <span class="mono">http://127.0.0.1:8770</span> 访问，' +
+    "前端会自动探测 <span class=\"mono\">/api/health</span> 并切换到 Python Agent 的真实输出，回答上方徽章会变为「真实后端」。" +
+    "两条路径返回的数据结构完全一致，渲染层无需感知差异。</div></div>" +
+    "</div></div></div>");
+
+  H.push('<div class="card" style="margin-top:18px"><div class="card-h"><h3>已知问题与下一步</h3>' +
+    '<span class="badge b-warn">诚实清单</span></div><div class="card-b">' +
+    '<div class="intercept" style="border-color:#f2d9b8;background:var(--warn-soft)">' +
+    [["知识库为演示数据", "每条带 verified:false，数值未经官方文本逐条核验。生产环境必须从生态环境部标准库重新灌入，评测集也不能建立在校验数据之上。"],
+     ["评测集规模不足", "24 题只够验证管线本身是否跑通。要证明系统能力，需扩到 200+ 题并覆盖更多标准族与边界条件。"],
+     ["规划器覆盖面有限", "离线规则规划器只能处理已建模的意图模式。接入 LLM 规划器后必须做 A/B 对比，不达标不上线。"],
+     ["行业覆盖偏窄", "环评类别判定目前是内置演示表（4 个行业），完整的《名录》约 50 大类 / 200+ 小类，需从官方文本构建规则表。"],
+     ["指标仍可能放过「把候选全列出来」的答案", "结论一致率只覆盖带「适用优先级裁决」结论句的题。查限值型的题如果同时列出多个等级（如噪声昼间/夜间、地表水河流/湖库），指标依然只判「出现过」，不判「哪个才是你要的」。这类样例目前靠人工抽查，尚未规则化。"],
+     ["分词保护逻辑曾全线失配（已修复）", "tokenize() 先 lower() 再匹配写死大写的 PROTECT_PATTERNS，且 \\b 在 Python 里是 Unicode 语义，导致 GB/HJ/DB 标准号、PM2.5/NH3-N 等代号、mg/L 单位四类模式全部失配，地标格式 DB33/ 2169-2018 更是完全无法作为整体匹配。修好后检索 MRR 一度从 0.868 掉到 0.763 —— 因为旧分词把「PM2.5」切成 9 个片段，等于意外给污染物 token 加了 9 倍权重，掩盖了向量通道缺 IDF 的事实。补上 IDF、归一化罗马数字、增加两条召回先验后回到 0.833。"],
+     ["MRR 相对早期版本下降 0.035（已知取舍）", "降幅全部来自 Q004 一题。期望条文自身的 BM25/向量名次一名未动，是同一标准内的另一条文在向量通道上升了 3 位；该题最终答案完全未变。加一个「版本」触发词即可把它顶回第一，但用 0.10 的加成去翻转 0.007 的差距属于对齐标注，不是修缺陷，故不做。"]]
+      .map(x => '<div class="it"><span class="x">!</span><div><b>' + esc(x[0]) + '</b> <span class="small">' + esc(x[1]) + "</span></div></div>").join("") +
+    "</div></div></div>");
+
+  $("archBody").innerHTML = H.join("");
+}
+
+/* =====================================================================
+ * 8. Tab 切换与初始化
+ * ===================================================================== */
+function switchTab(name) {
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.getAttribute("data-tab") === name));
+  document.querySelectorAll(".panel").forEach(p => p.classList.toggle("on", p.id === "panel-" + name));
+}
+document.querySelectorAll("#tabs button").forEach(b =>
+  b.addEventListener("click", () => switchTab(b.getAttribute("data-tab"))));
+
+$("qRun").addEventListener("click", () => runOne($("qInput").value.trim()));
+$("qInput").addEventListener("keydown", e => { if (e.key === "Enter") runOne($("qInput").value.trim()); });
+
+$("cRun").addEventListener("click", () => {
+  const val = parseFloat($("cVal").value);
+  if (isNaN(val)) { $("cOut").innerHTML = '<span class="muted small">请输入实测值。</span>'; return; }
+  const out = callTool("judge_compliance", { measured: val, pollutant: $("cPol").value,
+    medium: $("cMed").value, grade: $("cGrade").value });
+  if (out.error) { $("cOut").innerHTML = '<span style="color:var(--danger)">' + esc(out.error) + "</span>"; return; }
+  const okc = out.compliant ? "var(--ok)" : "var(--danger)";
+  $("cOut").innerHTML = '<div class="verdict" style="color:' + okc + '">' + out.verdict + "</div>" +
+    '<div class="small" style="margin-top:5px">适用：<b>' + esc(out.standard) + "</b></div>" +
+    '<div class="small muted" style="margin-top:2px">实测折算 ' + out.measured_normalized + " " + esc(out.limit_unit) +
+    " · 限值 " + out.limit + " " + esc(out.limit_unit) +
+    " · 超标倍数 " + ((out.exceedance_ratio >= 0 ? "+" : "") + (out.exceedance_ratio * 100).toFixed(2)) + "%</div>" +
+    '<div class="tiny muted" style="margin-top:5px">' + esc(out.caveat) + "</div>";
+});
+
+(function init() {
+  const st = IDX.stats;
+  const gb = $("gateBadge");
+  if (EVAL && EVAL.gate_result) {
+    const p = EVAL.gate_result.passed;
+    gb.className = "badge " + (p ? "b-ok" : "b-danger");
+    gb.textContent = p ? "门禁 通过 · " + st.n_standards + " 标准" : "门禁 未通过";
+  }
+  renderQuestionList();
+  renderEval();
+  renderKB();
+  renderArch();      // 必须在初始化时渲染：切换标签只控制显隐，不会触发渲染
+  if (!IDX.meta.verified) document.title += "（演示数据）";
+})();
+</script>
+</body>
+</html>

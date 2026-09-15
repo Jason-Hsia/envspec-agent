@@ -1,0 +1,1588 @@
+{
+ "clauses": [
+  {
+   "clause_id": "GB 3838-2002#4.1",
+   "std_id": "GB 3838-2002",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 水域功能和标准分类",
+    "4.1 水域功能分类"
+   ],
+   "clause_type": "definition",
+   "text": "依据地表水水域环境功能和保护目标，按功能高低依次划分为五类：Ⅰ类主要适用于源头水、国家自然保护区；Ⅱ类主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等；Ⅲ类主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、洄游通道、水产养殖区等渔业水域及游泳区；Ⅳ类主要适用于一般工业用水区及人体非直接接触的娱乐用水区；Ⅴ类主要适用于农业用水区及一般景观要求水域。",
+   "searchable_text": "GB 3838-2002 4.1 第4章 水域功能和标准分类 4.1 水域功能分类 依据地表水水域环境功能和保护目标，按功能高低依次划分为五类：Ⅰ类主要适用于源头水、国家自然保护区；Ⅱ类主要适用于集中式生活饮用水地表水源地一级保护区、珍稀水生生物栖息地、鱼虾类产卵场、仔稚幼鱼的索饵场等；Ⅲ类主要适用于集中式生活饮用水地表水源地二级保护区、鱼虾类越冬场、洄游通道、水产养殖区等渔业水域及游泳区；Ⅳ类主要适用于一般工业用水区及人体非直接接触的娱乐用水区；Ⅴ类主要适用于农业用水区及一般景观要求水域。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "地表水环境质量标准",
+   "std_effective_date": "2002-06-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_surface"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3838-2002#4.2",
+   "std_id": "GB 3838-2002",
+   "clause_no": "4.2",
+   "path": [
+    "第4章 水域功能和标准分类",
+    "4.2 标准值适用原则"
+   ],
+   "clause_type": "management",
+   "text": "同一水域兼有多类使用功能的，执行最高功能类别对应的标准值。实现水域功能与达功能类别标准为同一含义。",
+   "searchable_text": "GB 3838-2002 4.2 第4章 水域功能和标准分类 4.2 标准值适用原则 同一水域兼有多类使用功能的，执行最高功能类别对应的标准值。实现水域功能与达功能类别标准为同一含义。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "地表水环境质量标准",
+   "std_effective_date": "2002-06-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_surface"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3838-2002#表1-序号3",
+   "std_id": "GB 3838-2002",
+   "clause_no": "表1-序号3",
+   "path": [
+    "第4章 水域功能和标准分类",
+    "表1 地表水环境质量标准基本项目标准限值"
+   ],
+   "clause_type": "limit",
+   "text": "化学需氧量（COD），单位 mg/L。Ⅰ类 15，Ⅱ类 15，Ⅲ类 20，Ⅳ类 30，Ⅴ类 40。",
+   "searchable_text": "GB 3838-2002 表1-序号3 第4章 水域功能和标准分类 表1 地表水环境质量标准基本项目标准限值 化学需氧量（COD），单位 mg/L。Ⅰ类 15，Ⅱ类 15，Ⅲ类 20，Ⅳ类 30，Ⅴ类 40。",
+   "refs": [],
+   "limit_ref": "GB 3838-2002/T1/COD",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "地表水环境质量标准",
+   "std_effective_date": "2002-06-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_surface"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3838-2002#表1-序号5",
+   "std_id": "GB 3838-2002",
+   "clause_no": "表1-序号5",
+   "path": [
+    "第4章 水域功能和标准分类",
+    "表1 地表水环境质量标准基本项目标准限值"
+   ],
+   "clause_type": "limit",
+   "text": "氨氮（NH3-N，以N计），单位 mg/L。Ⅰ类 0.15，Ⅱ类 0.5，Ⅲ类 1.0，Ⅳ类 1.5，Ⅴ类 2.0。",
+   "searchable_text": "GB 3838-2002 表1-序号5 第4章 水域功能和标准分类 表1 地表水环境质量标准基本项目标准限值 氨氮（NH3-N，以N计），单位 mg/L。Ⅰ类 0.15，Ⅱ类 0.5，Ⅲ类 1.0，Ⅳ类 1.5，Ⅴ类 2.0。",
+   "refs": [],
+   "limit_ref": "GB 3838-2002/T1/NH3-N",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "地表水环境质量标准",
+   "std_effective_date": "2002-06-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_surface"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3838-2002#表1-序号4",
+   "std_id": "GB 3838-2002",
+   "clause_no": "表1-序号4",
+   "path": [
+    "第4章 水域功能和标准分类",
+    "表1 地表水环境质量标准基本项目标准限值"
+   ],
+   "clause_type": "limit",
+   "text": "总磷（以P计），单位 mg/L。河流：Ⅰ类 0.02，Ⅱ类 0.1，Ⅲ类 0.2，Ⅳ类 0.3，Ⅴ类 0.4；湖、库：Ⅰ类 0.01，Ⅱ类 0.025，Ⅲ类 0.05，Ⅳ类 0.1，Ⅴ类 0.2。",
+   "searchable_text": "GB 3838-2002 表1-序号4 第4章 水域功能和标准分类 表1 地表水环境质量标准基本项目标准限值 总磷（以P计），单位 mg/L。河流：Ⅰ类 0.02，Ⅱ类 0.1，Ⅲ类 0.2，Ⅳ类 0.3，Ⅴ类 0.4；湖、库：Ⅰ类 0.01，Ⅱ类 0.025，Ⅲ类 0.05，Ⅳ类 0.1，Ⅴ类 0.2。",
+   "refs": [],
+   "limit_ref": "GB 3838-2002/T1/TP",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "地表水环境质量标准",
+   "std_effective_date": "2002-06-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_surface"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-2012#4.1",
+   "std_id": "GB 3095-2012",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 环境空气功能区分类和质量要求",
+    "4.1 环境空气功能区分类"
+   ],
+   "clause_type": "definition",
+   "text": "环境空气功能区分为二类：一类区为自然保护区、风景名胜区和其他需要特殊保护的区域；二类区为居住区、商业交通居民混合区、文化区、工业区和农村地区。一类区适用一级浓度限值，二类区适用二级浓度限值。",
+   "searchable_text": "GB 3095-2012 4.1 第4章 环境空气功能区分类和质量要求 4.1 环境空气功能区分类 环境空气功能区分为二类：一类区为自然保护区、风景名胜区和其他需要特殊保护的区域；二类区为居住区、商业交通居民混合区、文化区、工业区和农村地区。一类区适用一级浓度限值，二类区适用二级浓度限值。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "2016-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-2012#表1-PM10",
+   "std_id": "GB 3095-2012",
+   "clause_no": "表1-PM10",
+   "path": [
+    "第4章 环境空气功能区分类和质量要求",
+    "表1 环境空气污染物基本项目浓度限值"
+   ],
+   "clause_type": "limit",
+   "text": "颗粒物（粒径小于等于10μm，PM10），单位 μg/m3。年平均：一级 40，二级 70；24小时平均：一级 50，二级 150。",
+   "searchable_text": "GB 3095-2012 表1-PM10 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 颗粒物（粒径小于等于10μm，PM10），单位 μg/m3。年平均：一级 40，二级 70；24小时平均：一级 50，二级 150。",
+   "refs": [],
+   "limit_ref": "GB 3095-2012/T1/PM10",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "2016-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-2012#表1-PM2.5",
+   "std_id": "GB 3095-2012",
+   "clause_no": "表1-PM2.5",
+   "path": [
+    "第4章 环境空气功能区分类和质量要求",
+    "表1 环境空气污染物基本项目浓度限值"
+   ],
+   "clause_type": "limit",
+   "text": "颗粒物（粒径小于等于2.5μm，PM2.5），单位 μg/m3。年平均：一级 15，二级 35；24小时平均：一级 35，二级 75。",
+   "searchable_text": "GB 3095-2012 表1-PM2.5 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 颗粒物（粒径小于等于2.5μm，PM2.5），单位 μg/m3。年平均：一级 15，二级 35；24小时平均：一级 35，二级 75。",
+   "refs": [],
+   "limit_ref": "GB 3095-2012/T1/PM2.5",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "2016-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-2012#表1-SO2",
+   "std_id": "GB 3095-2012",
+   "clause_no": "表1-SO2",
+   "path": [
+    "第4章 环境空气功能区分类和质量要求",
+    "表1 环境空气污染物基本项目浓度限值"
+   ],
+   "clause_type": "limit",
+   "text": "二氧化硫（SO2），单位 μg/m3。年平均：一级 20，二级 60；24小时平均：一级 50，二级 150；1小时平均：一级 150，二级 500。",
+   "searchable_text": "GB 3095-2012 表1-SO2 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 二氧化硫（SO2），单位 μg/m3。年平均：一级 20，二级 60；24小时平均：一级 50，二级 150；1小时平均：一级 150，二级 500。",
+   "refs": [],
+   "limit_ref": "GB 3095-2012/T1/SO2",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "2016-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-2012#表1-NO2",
+   "std_id": "GB 3095-2012",
+   "clause_no": "表1-NO2",
+   "path": [
+    "第4章 环境空气功能区分类和质量要求",
+    "表1 环境空气污染物基本项目浓度限值"
+   ],
+   "clause_type": "limit",
+   "text": "二氧化氮（NO2），单位 μg/m3。年平均：一级 40，二级 40；24小时平均：一级 80，二级 80；1小时平均：一级 200，二级 200。",
+   "searchable_text": "GB 3095-2012 表1-NO2 第4章 环境空气功能区分类和质量要求 表1 环境空气污染物基本项目浓度限值 二氧化氮（NO2），单位 μg/m3。年平均：一级 40，二级 40；24小时平均：一级 80，二级 80；1小时平均：一级 200，二级 200。",
+   "refs": [],
+   "limit_ref": "GB 3095-2012/T1/NO2",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "2016-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-2012#6.1",
+   "std_id": "GB 3095-2012",
+   "clause_no": "6.1",
+   "path": [
+    "第6章 数据统计的有效性规定",
+    "6.1"
+   ],
+   "clause_type": "method",
+   "text": "年平均浓度由全年各日平均浓度值的算术平均值计算，一年中有效日均值数据有效率不低于75%。24小时平均浓度每日至少应有20个小时平均浓度值或采样时间。",
+   "searchable_text": "GB 3095-2012 6.1 第6章 数据统计的有效性规定 6.1 年平均浓度由全年各日平均浓度值的算术平均值计算，一年中有效日均值数据有效率不低于75%。24小时平均浓度每日至少应有20个小时平均浓度值或采样时间。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "2016-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 8978-1996#4.1",
+   "std_id": "GB 8978-1996",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 技术内容",
+    "4.1 标准分级"
+   ],
+   "clause_type": "management",
+   "text": "排入GB 3838-2002 Ⅲ类水域（划定的保护区和游泳区除外）和排入GB 3097-1997 中二类海域的污水，执行一级标准。排入GB 3838-2002 中Ⅳ、Ⅴ类水域和排入GB 3097-1997 中三类海域的污水，执行二级标准。排入设置二级污水处理厂的城镇排水系统的污水，执行三级标准。",
+   "searchable_text": "GB 8978-1996 4.1 第4章 技术内容 4.1 标准分级 排入GB 3838-2002 Ⅲ类水域（划定的保护区和游泳区除外）和排入GB 3097-1997 中二类海域的污水，执行一级标准。排入GB 3838-2002 中Ⅳ、Ⅴ类水域和排入GB 3097-1997 中三类海域的污水，执行二级标准。排入设置二级污水处理厂的城镇排水系统的污水，执行三级标准。",
+   "refs": [
+    "GB 3838-2002#4.1"
+   ],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "污水综合排放标准",
+   "std_effective_date": "1998-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_wastewater"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 8978-1996#表2-COD",
+   "std_id": "GB 8978-1996",
+   "clause_no": "表2-COD",
+   "path": [
+    "第4章 技术内容",
+    "表2 第二类污染物最高允许排放浓度"
+   ],
+   "clause_type": "limit",
+   "text": "化学需氧量（COD），单位 mg/L。一级标准 100，二级标准 150，三级标准 500。适用于1998年1月1日之后建设的单位。",
+   "searchable_text": "GB 8978-1996 表2-COD 第4章 技术内容 表2 第二类污染物最高允许排放浓度 化学需氧量（COD），单位 mg/L。一级标准 100，二级标准 150，三级标准 500。适用于1998年1月1日之后建设的单位。",
+   "refs": [],
+   "limit_ref": "GB 8978-1996/T2/COD",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "污水综合排放标准",
+   "std_effective_date": "1998-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_wastewater"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 8978-1996#表2-NH3-N",
+   "std_id": "GB 8978-1996",
+   "clause_no": "表2-NH3-N",
+   "path": [
+    "第4章 技术内容",
+    "表2 第二类污染物最高允许排放浓度"
+   ],
+   "clause_type": "limit",
+   "text": "氨氮（NH3-N），单位 mg/L。一级标准 15，二级标准 25，三级标准 不限。适用于1998年1月1日之后建设的单位。",
+   "searchable_text": "GB 8978-1996 表2-NH3-N 第4章 技术内容 表2 第二类污染物最高允许排放浓度 氨氮（NH3-N），单位 mg/L。一级标准 15，二级标准 25，三级标准 不限。适用于1998年1月1日之后建设的单位。",
+   "refs": [],
+   "limit_ref": "GB 8978-1996/T2/NH3-N",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "污水综合排放标准",
+   "std_effective_date": "1998-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_wastewater"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 8978-1996#表2-石油类",
+   "std_id": "GB 8978-1996",
+   "clause_no": "表2-石油类",
+   "path": [
+    "第4章 技术内容",
+    "表2 第二类污染物最高允许排放浓度"
+   ],
+   "clause_type": "limit",
+   "text": "石油类，单位 mg/L。一级标准 5.0，二级标准 10，三级标准 20。适用于1998年1月1日之后建设的单位。",
+   "searchable_text": "GB 8978-1996 表2-石油类 第4章 技术内容 表2 第二类污染物最高允许排放浓度 石油类，单位 mg/L。一级标准 5.0，二级标准 10，三级标准 20。适用于1998年1月1日之后建设的单位。",
+   "refs": [],
+   "limit_ref": "GB 8978-1996/T2/石油类",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "污水综合排放标准",
+   "std_effective_date": "1998-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_wastewater"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 12348-2008#4.1",
+   "std_id": "GB 12348-2008",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 环境噪声排放限值",
+    "4.1 厂界环境噪声排放限值"
+   ],
+   "clause_type": "limit",
+   "text": "工业企业厂界环境噪声排放限值，单位 dB(A)。0类：昼间 50，夜间 40；1类：昼间 55，夜间 45；2类：昼间 60，夜间 50；3类：昼间 65，夜间 55；4类：昼间 70，夜间 55。夜间频发噪声的最大声级超过限值的幅度不得高于10 dB(A)；夜间偶发噪声的最大声级超过限值的幅度不得高于15 dB(A)。",
+   "searchable_text": "GB 12348-2008 4.1 第4章 环境噪声排放限值 4.1 厂界环境噪声排放限值 工业企业厂界环境噪声排放限值，单位 dB(A)。0类：昼间 50，夜间 40；1类：昼间 55，夜间 45；2类：昼间 60，夜间 50；3类：昼间 65，夜间 55；4类：昼间 70，夜间 55。夜间频发噪声的最大声级超过限值的幅度不得高于10 dB(A)；夜间偶发噪声的最大声级超过限值的幅度不得高于15 dB(A)。",
+   "refs": [],
+   "limit_ref": "GB 12348-2008/T1/LAeq",
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "工业企业厂界环境噪声排放标准",
+   "std_effective_date": "2008-10-01",
+   "std_replaced_by": [],
+   "medium": [
+    "noise"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 18597-2023#4.1",
+   "std_id": "GB 18597-2023",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 贮存设施选址要求",
+    "4.1"
+   ],
+   "clause_type": "management",
+   "text": "贮存设施选址应满足生态环境保护法律法规、规划和标准要求，并符合环境影响评价文件及其批复的要求。贮存设施应远离居民区、学校、医院等环境敏感目标，其位置应根据环境影响评价结论确定。",
+   "searchable_text": "GB 18597-2023 4.1 第4章 贮存设施选址要求 4.1 贮存设施选址应满足生态环境保护法律法规、规划和标准要求，并符合环境影响评价文件及其批复的要求。贮存设施应远离居民区、学校、医院等环境敏感目标，其位置应根据环境影响评价结论确定。",
+   "refs": [
+    "HJ 2.1-2016#general"
+   ],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "危险废物贮存污染控制标准",
+   "std_effective_date": "2023-07-01",
+   "std_replaced_by": [],
+   "medium": [
+    "solid_waste"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 18597-2023#6.1",
+   "std_id": "GB 18597-2023",
+   "clause_no": "6.1",
+   "path": [
+    "第6章 贮存过程污染控制要求",
+    "6.1 一般规定"
+   ],
+   "clause_type": "management",
+   "text": "危险废物贮存设施应设置防雨、防晒、防风、防渗设施，地面应做硬化处理并设置围堰或导流槽。不相容的危险废物应分区分类贮存，禁止将不相容的危险废物混合贮存。",
+   "searchable_text": "GB 18597-2023 6.1 第6章 贮存过程污染控制要求 6.1 一般规定 危险废物贮存设施应设置防雨、防晒、防风、防渗设施，地面应做硬化处理并设置围堰或导流槽。不相容的危险废物应分区分类贮存，禁止将不相容的危险废物混合贮存。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "危险废物贮存污染控制标准",
+   "std_effective_date": "2023-07-01",
+   "std_replaced_by": [],
+   "medium": [
+    "solid_waste"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 18597-2001#6.1.1",
+   "std_id": "GB 18597-2001",
+   "clause_no": "6.1.1",
+   "path": [
+    "第6章 危险废物贮存设施的运行与管理",
+    "6.1 一般要求"
+   ],
+   "clause_type": "management",
+   "text": "危险废物贮存设施应设置专用的贮存区域，并设置危险废物警示标志。不相容的危险废物必须分开存放，并设有隔离间隔断。",
+   "searchable_text": "GB 18597-2001 6.1.1 第6章 危险废物贮存设施的运行与管理 6.1 一般要求 危险废物贮存设施应设置专用的贮存区域，并设置危险废物警示标志。不相容的危险废物必须分开存放，并设有隔离间隔断。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "superseded",
+   "std_level": "national",
+   "std_title": "危险废物贮存污染控制标准",
+   "std_effective_date": "2002-07-01",
+   "std_replaced_by": [
+    "GB 18597-2023"
+   ],
+   "medium": [
+    "solid_waste"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-1996#4.1",
+   "std_id": "GB 3095-1996",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 环境空气质量功能区划分",
+    "4.1 一类区二类区"
+   ],
+   "clause_type": "definition",
+   "text": "环境空气质量功能区分为三类：一类区为自然保护区、林区、风景名胜区和其他需要特殊保护的地区；二类区为城镇规划中确定的居住区、商业交通居民混合区、文化区、一般工业区和农村地区；三类区为特定工业区。一类区执行一级标准，二类区执行二级标准，三类区执行三级标准。",
+   "searchable_text": "GB 3095-1996 4.1 第4章 环境空气质量功能区划分 4.1 一类区二类区 环境空气质量功能区分为三类：一类区为自然保护区、林区、风景名胜区和其他需要特殊保护的地区；二类区为城镇规划中确定的居住区、商业交通居民混合区、文化区、一般工业区和农村地区；三类区为特定工业区。一类区执行一级标准，二类区执行二级标准，三类区执行三级标准。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "superseded",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "1996-10-01",
+   "std_replaced_by": [
+    "GB 3095-2012"
+   ],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-1996#表1-SO2",
+   "std_id": "GB 3095-1996",
+   "clause_no": "表1-SO2",
+   "path": [
+    "第4章 环境空气质量功能区划分",
+    "表1 各项污染物的浓度限值"
+   ],
+   "clause_type": "limit",
+   "text": "二氧化硫（SO2），单位 mg/m3。年平均：一级 0.02，二级 0.06，三级 0.10；日平均：一级 0.05，二级 0.15，三级 0.25；1小时平均：一级 0.15，二级 0.50，三级 0.70。",
+   "searchable_text": "GB 3095-1996 表1-SO2 第4章 环境空气质量功能区划分 表1 各项污染物的浓度限值 二氧化硫（SO2），单位 mg/m3。年平均：一级 0.02，二级 0.06，三级 0.10；日平均：一级 0.05，二级 0.15，三级 0.25；1小时平均：一级 0.15，二级 0.50，三级 0.70。",
+   "refs": [],
+   "limit_ref": "GB 3095-1996/T1/SO2",
+   "std_status": "superseded",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "1996-10-01",
+   "std_replaced_by": [
+    "GB 3095-2012"
+   ],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 3095-1996#表1-TSP",
+   "std_id": "GB 3095-1996",
+   "clause_no": "表1-TSP",
+   "path": [
+    "第4章 环境空气质量功能区划分",
+    "表1 各项污染物的浓度限值"
+   ],
+   "clause_type": "limit",
+   "text": "总悬浮颗粒物（TSP），单位 mg/m3。年平均：一级 0.08，二级 0.20，三级 0.30；日平均：一级 0.12，二级 0.30，三级 0.50。",
+   "searchable_text": "GB 3095-1996 表1-TSP 第4章 环境空气质量功能区划分 表1 各项污染物的浓度限值 总悬浮颗粒物（TSP），单位 mg/m3。年平均：一级 0.08，二级 0.20，三级 0.30；日平均：一级 0.12，二级 0.30，三级 0.50。",
+   "refs": [],
+   "limit_ref": "GB 3095-1996/T1/TSP",
+   "std_status": "superseded",
+   "std_level": "national",
+   "std_title": "环境空气质量标准",
+   "std_effective_date": "1996-10-01",
+   "std_replaced_by": [
+    "GB 3095-2012"
+   ],
+   "medium": [
+    "air_ambient"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "DB33/ 2169-2018#4.1",
+   "std_id": "DB33/ 2169-2018",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 水污染物排放控制要求",
+    "4.1 排放限值"
+   ],
+   "clause_type": "limit",
+   "text": "浙江省内城镇污水处理厂主要水污染物排放浓度限值，单位 mg/L。化学需氧量（COD）30，氨氮（NH3-N）1.5（2.5），总氮 10（12），总磷 0.3。括号内为每年11月1日至次年3月31日的限值。",
+   "searchable_text": "DB33/ 2169-2018 4.1 第4章 水污染物排放控制要求 4.1 排放限值 浙江省内城镇污水处理厂主要水污染物排放浓度限值，单位 mg/L。化学需氧量（COD）30，氨氮（NH3-N）1.5（2.5），总氮 10（12），总磷 0.3。括号内为每年11月1日至次年3月31日的限值。",
+   "refs": [
+    "GB 8978-1996#4.1"
+   ],
+   "limit_ref": "DB33/ 2169-2018/T1/COD",
+   "std_status": "active",
+   "std_level": "local",
+   "std_title": "城镇污水处理厂主要水污染物排放标准",
+   "std_effective_date": "2019-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "water_wastewater"
+   ],
+   "region": [
+    "浙江省"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "HJ 2.1-2016#4",
+   "std_id": "HJ 2.1-2016",
+   "clause_no": "4",
+   "path": [
+    "第4章 评价工作程序",
+    "4 总则"
+   ],
+   "clause_type": "method",
+   "text": "环境影响评价工作程序一般分为三个阶段：第一阶段为准备阶段，主要工作为研究有关文件，进行初步的工程分析和环境现状调查，筛选重点评价项目，确定各单项环境影响评价的工作等级，编制评价工作大纲；第二阶段为正式工作阶段，主要工作为进一步做工程分析和环境现状调查，并进行环境影响预测和评价环境影响；第三阶段为报告书编制阶段。",
+   "searchable_text": "HJ 2.1-2016 4 第4章 评价工作程序 4 总则 环境影响评价工作程序一般分为三个阶段：第一阶段为准备阶段，主要工作为研究有关文件，进行初步的工程分析和环境现状调查，筛选重点评价项目，确定各单项环境影响评价的工作等级，编制评价工作大纲；第二阶段为正式工作阶段，主要工作为进一步做工程分析和环境现状调查，并进行环境影响预测和评价环境影响；第三阶段为报告书编制阶段。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "industry",
+   "std_title": "建设项目环境影响评价技术导则 总纲",
+   "std_effective_date": "2017-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "eia"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "HJ 2.1-2016#5.2",
+   "std_id": "HJ 2.1-2016",
+   "clause_no": "5.2",
+   "path": [
+    "第5章 建设项目工程分析",
+    "5.2 污染源源强核算"
+   ],
+   "clause_type": "method",
+   "text": "污染源源强核算应优先采用实测法，其次采用物料衡算法、经验系数法。对于改扩建项目，应分别给出现有工程、在建工程和拟建工程的源强，并说明现有工程存在的环保问题及整改措施。",
+   "searchable_text": "HJ 2.1-2016 5.2 第5章 建设项目工程分析 5.2 污染源源强核算 污染源源强核算应优先采用实测法，其次采用物料衡算法、经验系数法。对于改扩建项目，应分别给出现有工程、在建工程和拟建工程的源强，并说明现有工程存在的环保问题及整改措施。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "industry",
+   "std_title": "建设项目环境影响评价技术导则 总纲",
+   "std_effective_date": "2017-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "eia"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "HJ 819-2017#5",
+   "std_id": "HJ 819-2017",
+   "clause_no": "5",
+   "path": [
+    "第5章 监测点位与监测指标",
+    "5 自行监测方案"
+   ],
+   "clause_type": "method",
+   "text": "排污单位应根据污染物排放标准和排污许可证要求确定监测点位、监测指标与监测频次。废水污染物排放口应设置在厂界外或厂界内便于采样和监测的位置，并设置规范的采样口和计量装置。",
+   "searchable_text": "HJ 819-2017 5 第5章 监测点位与监测指标 5 自行监测方案 排污单位应根据污染物排放标准和排污许可证要求确定监测点位、监测指标与监测频次。废水污染物排放口应设置在厂界外或厂界内便于采样和监测的位置，并设置规范的采样口和计量装置。",
+   "refs": [
+    "GB 8978-1996#4.1"
+   ],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "industry",
+   "std_title": "排污单位自行监测技术指南 总则",
+   "std_effective_date": "2017-06-01",
+   "std_replaced_by": [],
+   "medium": [
+    "monitoring"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "GB 34330-2017#4.1",
+   "std_id": "GB 34330-2017",
+   "clause_no": "4.1",
+   "path": [
+    "第4章 鉴别原则",
+    "4.1"
+   ],
+   "clause_type": "definition",
+   "text": "固体废物是指在生产、生活和其他活动中产生的丧失原有利用价值或者虽未丧失利用价值但被抛弃或者放弃的固态、半固态和置于容器中的气态的物品、物质以及法律、行政法规规定纳入固体废物管理的物品、物质。",
+   "searchable_text": "GB 34330-2017 4.1 第4章 鉴别原则 4.1 固体废物是指在生产、生活和其他活动中产生的丧失原有利用价值或者虽未丧失利用价值但被抛弃或者放弃的固态、半固态和置于容器中的气态的物品、物质以及法律、行政法规规定纳入固体废物管理的物品、物质。",
+   "refs": [],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "固体废物鉴别标准 通则",
+   "std_effective_date": "2017-10-01",
+   "std_replaced_by": [],
+   "medium": [
+    "solid_waste"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  },
+  {
+   "clause_id": "名录-2021#4.2",
+   "std_id": "名录-2021",
+   "clause_no": "4.2",
+   "path": [
+    "第4章 分类管理",
+    "4.2 报告书/报告表/登记表判定"
+   ],
+   "clause_type": "management",
+   "text": "建设单位应当对照名录确定建设项目环境影响评价类别。名录中未列出的建设项目，不需要办理环境影响评价手续。环境影响报告书、报告表由建设单位报有审批权的生态环境主管部门审批；登记表由建设单位自行填报并备案。",
+   "searchable_text": "名录-2021 4.2 第4章 分类管理 4.2 报告书/报告表/登记表判定 建设单位应当对照名录确定建设项目环境影响评价类别。名录中未列出的建设项目，不需要办理环境影响评价手续。环境影响报告书、报告表由建设单位报有审批权的生态环境主管部门审批；登记表由建设单位自行填报并备案。",
+   "refs": [
+    "HJ 2.1-2016#4"
+   ],
+   "limit_ref": null,
+   "std_status": "active",
+   "std_level": "national",
+   "std_title": "建设项目环境影响评价分类管理名录（2021年版）",
+   "std_effective_date": "2021-01-01",
+   "std_replaced_by": [],
+   "medium": [
+    "eia"
+   ],
+   "region": [
+    "全国"
+   ],
+   "verified": false
+  }
+ ],
+ "limits": [
+  {
+   "limit_id": "GB 3838-2002/T1/COD",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量",
+    "CODcr"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅲ",
+   "condition": "基本项目",
+   "limit_type": "concentration_max",
+   "value": 20,
+   "value_text": null,
+   "value_display": "20"
+  },
+  {
+   "limit_id": "GB 3838-2002/T1/COD",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量",
+    "CODcr"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅳ",
+   "condition": "基本项目",
+   "limit_type": "concentration_max",
+   "value": 30,
+   "value_text": null,
+   "value_display": "30"
+  },
+  {
+   "limit_id": "GB 3838-2002/T1/COD",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量",
+    "CODcr"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅴ",
+   "condition": "基本项目",
+   "limit_type": "concentration_max",
+   "value": 40,
+   "value_text": null,
+   "value_display": "40"
+  },
+  {
+   "limit_id": "GB 3838-2002/T1/NH3-N",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "NH3-N",
+   "pollutant_alias": [
+    "氨氮"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅲ",
+   "condition": "基本项目，以N计",
+   "limit_type": "concentration_max",
+   "value": 1.0,
+   "value_text": null,
+   "value_display": "1.0"
+  },
+  {
+   "limit_id": "GB 3838-2002/T1/NH3-N",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "NH3-N",
+   "pollutant_alias": [
+    "氨氮"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅳ",
+   "condition": "基本项目，以N计",
+   "limit_type": "concentration_max",
+   "value": 1.5,
+   "value_text": null,
+   "value_display": "1.5"
+  },
+  {
+   "limit_id": "GB 3838-2002/T1/TP",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "TP",
+   "pollutant_alias": [
+    "总磷"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅲ",
+   "condition": "河流",
+   "limit_type": "concentration_max",
+   "value": 0.2,
+   "value_text": null,
+   "value_display": "0.2"
+  },
+  {
+   "limit_id": "GB 3838-2002/T1/TP",
+   "std_id": "GB 3838-2002",
+   "table": "表1",
+   "pollutant": "TP",
+   "pollutant_alias": [
+    "总磷"
+   ],
+   "medium": "water_surface",
+   "unit": "mg/L",
+   "grade": "Ⅲ",
+   "condition": "湖库",
+   "limit_type": "concentration_max",
+   "value": 0.05,
+   "value_text": null,
+   "value_display": "0.05"
+  },
+  {
+   "limit_id": "GB 3095-2012/T1/PM10",
+   "std_id": "GB 3095-2012",
+   "table": "表1",
+   "pollutant": "PM10",
+   "pollutant_alias": [
+    "颗粒物"
+   ],
+   "medium": "air_ambient",
+   "unit": "μg/m3",
+   "grade": "二级",
+   "condition": "24小时平均",
+   "limit_type": "concentration_max",
+   "value": 150,
+   "value_text": null,
+   "value_display": "150"
+  },
+  {
+   "limit_id": "GB 3095-2012/T1/PM10",
+   "std_id": "GB 3095-2012",
+   "table": "表1",
+   "pollutant": "PM10",
+   "pollutant_alias": [
+    "颗粒物"
+   ],
+   "medium": "air_ambient",
+   "unit": "μg/m3",
+   "grade": "一级",
+   "condition": "24小时平均",
+   "limit_type": "concentration_max",
+   "value": 50,
+   "value_text": null,
+   "value_display": "50"
+  },
+  {
+   "limit_id": "GB 3095-2012/T1/PM2.5",
+   "std_id": "GB 3095-2012",
+   "table": "表1",
+   "pollutant": "PM2.5",
+   "pollutant_alias": [
+    "细颗粒物"
+   ],
+   "medium": "air_ambient",
+   "unit": "μg/m3",
+   "grade": "二级",
+   "condition": "年平均",
+   "limit_type": "concentration_max",
+   "value": 35,
+   "value_text": null,
+   "value_display": "35"
+  },
+  {
+   "limit_id": "GB 3095-2012/T1/SO2",
+   "std_id": "GB 3095-2012",
+   "table": "表1",
+   "pollutant": "SO2",
+   "pollutant_alias": [
+    "二氧化硫"
+   ],
+   "medium": "air_ambient",
+   "unit": "μg/m3",
+   "grade": "二级",
+   "condition": "1小时平均",
+   "limit_type": "concentration_max",
+   "value": 500,
+   "value_text": null,
+   "value_display": "500"
+  },
+  {
+   "limit_id": "GB 3095-2012/T1/NO2",
+   "std_id": "GB 3095-2012",
+   "table": "表1",
+   "pollutant": "NO2",
+   "pollutant_alias": [
+    "二氧化氮"
+   ],
+   "medium": "air_ambient",
+   "unit": "μg/m3",
+   "grade": "二级",
+   "condition": "1小时平均",
+   "limit_type": "concentration_max",
+   "value": 200,
+   "value_text": null,
+   "value_display": "200"
+  },
+  {
+   "limit_id": "GB 8978-1996/T2/COD",
+   "std_id": "GB 8978-1996",
+   "table": "表2",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "一级",
+   "condition": "1998-01-01后建设单位",
+   "limit_type": "concentration_max",
+   "value": 100,
+   "value_text": null,
+   "value_display": "100"
+  },
+  {
+   "limit_id": "GB 8978-1996/T2/COD",
+   "std_id": "GB 8978-1996",
+   "table": "表2",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "二级",
+   "condition": "1998-01-01后建设单位",
+   "limit_type": "concentration_max",
+   "value": 150,
+   "value_text": null,
+   "value_display": "150"
+  },
+  {
+   "limit_id": "GB 8978-1996/T2/COD",
+   "std_id": "GB 8978-1996",
+   "table": "表2",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "三级",
+   "condition": "1998-01-01后建设单位",
+   "limit_type": "concentration_max",
+   "value": 500,
+   "value_text": null,
+   "value_display": "500"
+  },
+  {
+   "limit_id": "GB 8978-1996/T2/NH3-N",
+   "std_id": "GB 8978-1996",
+   "table": "表2",
+   "pollutant": "NH3-N",
+   "pollutant_alias": [
+    "氨氮"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "一级",
+   "condition": "1998-01-01后建设单位",
+   "limit_type": "concentration_max",
+   "value": 15,
+   "value_text": null,
+   "value_display": "15"
+  },
+  {
+   "limit_id": "GB 8978-1996/T2/NH3-N",
+   "std_id": "GB 8978-1996",
+   "table": "表2",
+   "pollutant": "NH3-N",
+   "pollutant_alias": [
+    "氨氮"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "二级",
+   "condition": "1998-01-01后建设单位",
+   "limit_type": "concentration_max",
+   "value": 25,
+   "value_text": null,
+   "value_display": "25"
+  },
+  {
+   "limit_id": "GB 8978-1996/T2/石油类",
+   "std_id": "GB 8978-1996",
+   "table": "表2",
+   "pollutant": "石油类",
+   "pollutant_alias": [
+    "石油类"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "一级",
+   "condition": "1998-01-01后建设单位",
+   "limit_type": "concentration_max",
+   "value": 5.0,
+   "value_text": null,
+   "value_display": "5.0"
+  },
+  {
+   "limit_id": "GB 12348-2008/T1/LAeq",
+   "std_id": "GB 12348-2008",
+   "table": "表1",
+   "pollutant": "噪声",
+   "pollutant_alias": [
+    "厂界噪声",
+    "LAeq"
+   ],
+   "medium": "noise",
+   "unit": "dB(A)",
+   "grade": "2类",
+   "condition": "昼间",
+   "limit_type": "concentration_max",
+   "value": 60,
+   "value_text": null,
+   "value_display": "60"
+  },
+  {
+   "limit_id": "GB 12348-2008/T1/LAeq",
+   "std_id": "GB 12348-2008",
+   "table": "表1",
+   "pollutant": "噪声",
+   "pollutant_alias": [
+    "厂界噪声",
+    "LAeq"
+   ],
+   "medium": "noise",
+   "unit": "dB(A)",
+   "grade": "2类",
+   "condition": "夜间",
+   "limit_type": "concentration_max",
+   "value": 50,
+   "value_text": null,
+   "value_display": "50"
+  },
+  {
+   "limit_id": "GB 12348-2008/T1/LAeq",
+   "std_id": "GB 12348-2008",
+   "table": "表1",
+   "pollutant": "噪声",
+   "pollutant_alias": [
+    "厂界噪声",
+    "LAeq"
+   ],
+   "medium": "noise",
+   "unit": "dB(A)",
+   "grade": "3类",
+   "condition": "昼间",
+   "limit_type": "concentration_max",
+   "value": 65,
+   "value_text": null,
+   "value_display": "65"
+  },
+  {
+   "limit_id": "GB 12348-2008/T1/LAeq",
+   "std_id": "GB 12348-2008",
+   "table": "表1",
+   "pollutant": "噪声",
+   "pollutant_alias": [
+    "厂界噪声",
+    "LAeq"
+   ],
+   "medium": "noise",
+   "unit": "dB(A)",
+   "grade": "3类",
+   "condition": "夜间",
+   "limit_type": "concentration_max",
+   "value": 55,
+   "value_text": null,
+   "value_display": "55"
+  },
+  {
+   "limit_id": "GB 3095-1996/T1/SO2",
+   "std_id": "GB 3095-1996",
+   "table": "表1",
+   "pollutant": "SO2",
+   "pollutant_alias": [
+    "二氧化硫"
+   ],
+   "medium": "air_ambient",
+   "unit": "mg/m3",
+   "grade": "二级",
+   "condition": "1小时平均",
+   "limit_type": "concentration_max",
+   "value": 0.5,
+   "value_text": null,
+   "value_display": "0.5"
+  },
+  {
+   "limit_id": "GB 3095-1996/T1/SO2",
+   "std_id": "GB 3095-1996",
+   "table": "表1",
+   "pollutant": "SO2",
+   "pollutant_alias": [
+    "二氧化硫"
+   ],
+   "medium": "air_ambient",
+   "unit": "mg/m3",
+   "grade": "一级",
+   "condition": "1小时平均",
+   "limit_type": "concentration_max",
+   "value": 0.15,
+   "value_text": null,
+   "value_display": "0.15"
+  },
+  {
+   "limit_id": "DB33/ 2169-2018/T1/COD",
+   "std_id": "DB33/ 2169-2018",
+   "table": "表1",
+   "pollutant": "COD",
+   "pollutant_alias": [
+    "化学需氧量"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "浙江地标",
+   "condition": "城镇污水处理厂，常规时段",
+   "limit_type": "concentration_max",
+   "value": 30,
+   "value_text": null,
+   "value_display": "30"
+  },
+  {
+   "limit_id": "DB33/ 2169-2018/T1/NH3-N",
+   "std_id": "DB33/ 2169-2018",
+   "table": "表1",
+   "pollutant": "NH3-N",
+   "pollutant_alias": [
+    "氨氮"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "浙江地标",
+   "condition": "城镇污水处理厂，常规时段",
+   "limit_type": "concentration_max",
+   "value": 1.5,
+   "value_text": null,
+   "value_display": "1.5"
+  },
+  {
+   "limit_id": "DB33/ 2169-2018/T1/NH3-N",
+   "std_id": "DB33/ 2169-2018",
+   "table": "表1",
+   "pollutant": "NH3-N",
+   "pollutant_alias": [
+    "氨氮"
+   ],
+   "medium": "water_wastewater",
+   "unit": "mg/L",
+   "grade": "浙江地标",
+   "condition": "城镇污水处理厂，11月1日至次年3月31日",
+   "limit_type": "concentration_max",
+   "value": 2.5,
+   "value_text": null,
+   "value_display": "2.5"
+  }
+ ],
+ "standards": [
+  {
+   "std_id": "GB 3838-2002",
+   "title": "地表水环境质量标准",
+   "level": "national",
+   "medium": [
+    "water_surface"
+   ],
+   "issuing_body": "国家环境保护总局 / 国家质量监督检验检疫总局",
+   "publish_date": "2002-04-28",
+   "effective_date": "2002-06-01",
+   "status": "active",
+   "replaces": [
+    "GB 3838-1988"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "通用"
+    ],
+    "note": "适用于中华人民共和国领域内江河、湖泊、运河、渠道、水库等具有使用功能的地表水水域"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 3095-2012",
+   "title": "环境空气质量标准",
+   "level": "national",
+   "medium": [
+    "air_ambient"
+   ],
+   "issuing_body": "环境保护部 / 国家质量监督检验检疫总局",
+   "publish_date": "2012-02-29",
+   "effective_date": "2016-01-01",
+   "status": "active",
+   "replaces": [
+    "GB 3095-1996"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "通用"
+    ],
+    "note": "一类区为自然保护区、风景名胜区等需特殊保护地区；二类区为居住区、商业交通居民混合区、文化区、工业区和农村地区"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 3095-1996",
+   "title": "环境空气质量标准",
+   "level": "national",
+   "medium": [
+    "air_ambient"
+   ],
+   "issuing_body": "国家环境保护局 / 国家技术监督局",
+   "publish_date": "1996-01-18",
+   "effective_date": "1996-10-01",
+   "status": "superseded",
+   "replaces": [],
+   "replaced_by": [
+    "GB 3095-2012"
+   ],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "通用"
+    ],
+    "note": "已被 GB 3095-2012 替代，禁止在新建项目环评与验收中引用"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 8978-1996",
+   "title": "污水综合排放标准",
+   "level": "national",
+   "medium": [
+    "water_wastewater"
+   ],
+   "issuing_body": "国家环境保护局 / 国家技术监督局",
+   "publish_date": "1996-10-04",
+   "effective_date": "1998-01-01",
+   "status": "active",
+   "replaces": [
+    "GB 8978-1988"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "通用"
+    ],
+    "note": "行业性排放标准适用时优先；无行业标准的排污单位执行本标准。一级/二级/三级标准按排入水域功能与排放去向确定"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 12348-2008",
+   "title": "工业企业厂界环境噪声排放标准",
+   "level": "national",
+   "medium": [
+    "noise"
+   ],
+   "issuing_body": "国家环境保护总局 / 国家质量监督检验检疫总局",
+   "publish_date": "2008-08-19",
+   "effective_date": "2008-10-01",
+   "status": "active",
+   "replaces": [
+    "GB 12348-1990"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "工业"
+    ],
+    "note": "厂界外声环境功能区类别 0/1/2/3/4 决定限值；夜间频发噪声与偶发噪声另有修正规定"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 18597-2023",
+   "title": "危险废物贮存污染控制标准",
+   "level": "national",
+   "medium": [
+    "solid_waste"
+   ],
+   "issuing_body": "生态环境部 / 国家市场监督管理总局",
+   "publish_date": "2023-01-20",
+   "effective_date": "2023-07-01",
+   "status": "active",
+   "replaces": [
+    "GB 18597-2001"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "危废产生与经营单位"
+    ],
+    "note": "规定了危险废物贮存设施的选址、设计与运行污染控制要求"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 18597-2001",
+   "title": "危险废物贮存污染控制标准",
+   "level": "national",
+   "medium": [
+    "solid_waste"
+   ],
+   "issuing_body": "国家环境保护总局",
+   "publish_date": "2001-12-28",
+   "effective_date": "2002-07-01",
+   "status": "superseded",
+   "replaces": [],
+   "replaced_by": [
+    "GB 18597-2023"
+   ],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "危废产生与经营单位"
+    ],
+    "note": "已被 GB 18597-2023 替代。语料中仍大量存在，是典型的时效性陷阱"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "DB33/ 2169-2018",
+   "title": "城镇污水处理厂主要水污染物排放标准",
+   "level": "local",
+   "medium": [
+    "water_wastewater"
+   ],
+   "issuing_body": "浙江省人民政府 / 浙江省生态环境厅",
+   "publish_date": "2018-12-28",
+   "effective_date": "2019-01-01",
+   "status": "active",
+   "replaces": [],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "浙江省"
+    ],
+    "industry": [
+     "城镇污水处理厂"
+    ],
+    "note": "地方标准严于国家标准时，浙江省内城镇污水处理厂执行本标准"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "HJ 2.1-2016",
+   "title": "建设项目环境影响评价技术导则 总纲",
+   "level": "industry",
+   "medium": [
+    "eia"
+   ],
+   "issuing_body": "环境保护部",
+   "publish_date": "2016-12-08",
+   "effective_date": "2017-01-01",
+   "status": "active",
+   "replaces": [
+    "HJ 2.1-2011"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "建设项目环评"
+    ],
+    "note": "规定了环境影响评价的原则、内容、工作程序与技术要求，是各要素导则的总纲"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "HJ 819-2017",
+   "title": "排污单位自行监测技术指南 总则",
+   "level": "industry",
+   "medium": [
+    "monitoring"
+   ],
+   "issuing_body": "环境保护部",
+   "publish_date": "2017-04-25",
+   "effective_date": "2017-06-01",
+   "status": "active",
+   "replaces": [],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "排污单位"
+    ],
+    "note": "规定了自行监测的一般要求、监测点位、指标、频次与技术方法"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "GB 34330-2017",
+   "title": "固体废物鉴别标准 通则",
+   "level": "national",
+   "medium": [
+    "solid_waste"
+   ],
+   "issuing_body": "环境保护部 / 国家质量监督检验检疫总局",
+   "publish_date": "2017-05-27",
+   "effective_date": "2017-10-01",
+   "status": "active",
+   "replaces": [],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "通用"
+    ],
+    "note": "规定了依据产生来源、利用和处置过程鉴别固体废物应遵循的规则"
+   },
+   "verified": false
+  },
+  {
+   "std_id": "名录-2021",
+   "title": "建设项目环境影响评价分类管理名录（2021年版）",
+   "level": "national",
+   "medium": [
+    "eia"
+   ],
+   "issuing_body": "生态环境部",
+   "publish_date": "2020-11-30",
+   "effective_date": "2021-01-01",
+   "status": "active",
+   "replaces": [
+    "名录-2018"
+   ],
+   "replaced_by": [],
+   "applicability": {
+    "region": [
+     "全国"
+    ],
+    "industry": [
+     "建设项目"
+    ],
+    "note": "按项目类别与规模，确定编制环境影响报告书、报告表或填报登记表"
+   },
+   "verified": false
+  }
+ ],
+ "chain": [
+  {
+   "from": "GB 3095-1996",
+   "to": "GB 3095-2012",
+   "type": "full_replacement",
+   "effective_date": "2016-01-01"
+  },
+  {
+   "from": "GB 18597-2001",
+   "to": "GB 18597-2023",
+   "type": "full_replacement",
+   "effective_date": "2023-07-01"
+  },
+  {
+   "from": "GB 3838-1988",
+   "to": "GB 3838-2002",
+   "type": "full_replacement",
+   "effective_date": "2002-06-01"
+  },
+  {
+   "from": "GB 8978-1988",
+   "to": "GB 8978-1996",
+   "type": "full_replacement",
+   "effective_date": "1998-01-01"
+  },
+  {
+   "from": "GB 12348-1990",
+   "to": "GB 12348-2008",
+   "type": "full_replacement",
+   "effective_date": "2008-10-01"
+  },
+  {
+   "from": "HJ 2.1-2011",
+   "to": "HJ 2.1-2016",
+   "type": "full_replacement",
+   "effective_date": "2017-01-01"
+  },
+  {
+   "from": "名录-2018",
+   "to": "名录-2021",
+   "type": "full_replacement",
+   "effective_date": "2021-01-01"
+  }
+ ],
+ "meta": {
+  "purpose": "知识库结构演示数据。用于跑通 解析->切分->索引->检索->工具调用->评测 全链路。",
+  "verified": false,
+  "verified_note": "数值型字段未经官方文本逐条核验。生产环境必须通过官方数据源适配器重新灌入，并置 verified=true。评测集不得建立在校验数据之上。",
+  "official_sources": [
+   "生态环境部 标准库 https://www.mee.gov.cn/ywgz/fgbz/",
+   "全国标准信息公共服务平台 https://std.samr.gov.cn/",
+   "浙江省 生态环境厅 地方标准栏目"
+  ],
+  "loaded_at": "2026-09-14"
+ },
+ "stats": {
+  "n_standards": 12,
+  "n_clauses": 28,
+  "n_limits": 27,
+  "n_stale_clauses": 4,
+  "n_verified_standards": 0
+ }
+}
